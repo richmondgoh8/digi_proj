@@ -1,0 +1,392 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Richmond Goh
+
+Brief Description: Controls of How to Play Screen interaction
+*/
+
+    /*
+        FindTargetButtonBox assigned as Archetype to find Button01
+        FindTargetButtonText assigned as Archetype to find SpriteTextArch (TextTemplate)
+        FindHelperText assigned as Archetype to find SpriteTextArch (TextTemplate)
+        AButton:Archetype used to find AButton
+        SButton:Archetype used to find SButton
+        WButton:Archetype used to find WButton
+        RecordButton:Archetype used to find RecordButton
+        TutorialGifL Archetype used to find RecordTutorialGif
+    */
+
+class InstructionTabsScript : ZilchComponent
+{
+    [Property]
+    var FindTargetButtonBox:Archetype;
+    
+    [Property]
+    var FindTargetButtonText:Archetype;
+    
+    [Property]
+    var FindHelperText:Archetype;
+    
+    [Property]
+    var AButton:Archetype;
+    
+    [Property]
+    var SButton:Archetype;
+    
+    [Property]
+    var WButton:Archetype;
+    
+    [Property]
+    var RecordButton:Archetype;
+    
+    [Property]
+    var TutorialGif:Archetype;
+    
+    [Property]
+    var RulesGif:Archetype;
+    
+    /*
+        Next Few Initalization are used as cog to create archetypes
+        Arrays are used to store strings to be TimeDisplay
+        Default Color Values are used to prevent repeatedcoding for any NetUserOwnerChanged
+        Hide Controls and record boolean used to check which ones to show based on tab selected
+    */
+    var BoxCreationArray : Array[Cog] = Array[Cog]();
+    var TextBoxHolderCreationArray : Array[Cog] = Array[Cog]();
+    var HelperText:Cog;
+    var Helper2Text:Cog;
+    var Helper3Text:Cog;
+    var Helper4Text:Cog;
+    var GuiderText:Cog;
+    var RecordTutorial:Cog;
+    var RulesTutorial:Cog;
+    
+    var DemoText1:Cog;
+    var DemoText2:Cog;
+    var DemoText3:Cog;
+    
+    var RulesText1:Cog;
+    var RulesText2:Cog;
+    var RulesText3:Cog;
+    
+    var TextBoxCreationArray : Array[String] = Array[String]();
+    
+    var RuleTextCreationArray : Array[String] = Array[String]();
+    
+    var DefaultColor:Real4 = Real4(25.0/255,100.0/255,100.0/255,1);
+    var DefaultTextColor:Real4 = Real4(255.0/255,255.0/255,255.0/255,1);
+    
+    var DefaultSelectedBoxColor:Real4 = Real4(87.0/255,87.0/255,32.0/255,1);
+    var DefaultSelectedBoxTextColor:Real4 = Real4(32.0/255,15.0/255,32.0/255,1);
+    
+    var SelectedValue:Integer = 0;
+    
+    var RandomCog:Array[Cog] = Array[Cog]();
+    
+    var HelperTextControl:Array[String] = Array[String]();
+    
+    var DemoText:Array[String] = Array[String]();
+    
+    var HideControlText:Boolean = true;
+    var HideRecordTutorialScreen:Boolean = true;
+        
+    function Initialize(init : CogInitializer)
+    {
+        this.HelperText = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.Helper2Text = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.Helper3Text = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.Helper4Text = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.GuiderText = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.RecordTutorial = this.Space.CreateAtPosition(this.TutorialGif,Real3(0,0,0));
+        this.RulesTutorial = this.Space.CreateAtPosition(this.RulesGif,Real3(0,0,0));
+        
+        this.Create3Boxes();
+        //Function 1 = Create3Boxes
+        //Function 2 = CreateBoxText
+        //Function 3 = DefaultSelection
+        //Function 4 = ChangingText Color to Selection Color
+        //Function 5 = Changing Selection = Show Text Accordingly
+        
+        Zero.Connect(Zero.Keyboard,Events.KeyDown,this.ChangingText);
+        //Create3Boxes function is executed first
+    }
+
+
+    /*
+        Function Create3Boxes creates 3 boxes and assigns them to array and gives them a transform value
+    */
+    function Create3Boxes()
+    {
+        for(var i = 0; i < 3; ++i)
+        {
+            this.BoxCreationArray.Add(this.Space.CreateAtPosition(this.FindTargetButtonBox,Real3(0,0,0)));
+            this.BoxCreationArray[i].Area.Size = Integer2(3,1);
+            this.BoxCreationArray[i].Sprite.Color = this.DefaultColor;
+            
+        }
+        var tmpAButton:Cog = this.Space.CreateAtPosition(this.AButton,Real3(0,0,0));
+        this.RandomCog.Add(tmpAButton);
+        var tmpSButton2:Cog = this.Space.CreateAtPosition(this.SButton,Real3(0,0,0));
+        this.RandomCog.Add(tmpSButton2);
+        var tmpWButton3:Cog = this.Space.CreateAtPosition(this.WButton,Real3(0,0,0));
+        this.RandomCog.Add(tmpWButton3);
+        var recordButton:Cog = this.Space.CreateAtPosition(this.RecordButton,Real3(0,0,0));
+        this.RandomCog.Add(recordButton);
+        
+        this.BoxCreationArray[0].Transform.Translation = Real3(-10,7,0);
+        this.BoxCreationArray[1].Transform.Translation = Real3(0,7,0);
+        this.BoxCreationArray[2].Transform.Translation = Real3(10,7,0);
+        
+        this.CreateBoxText();
+    }
+    
+    /*
+        Function CreateBoxText creates 3 text and assigns them to array and gives them a transform value
+        Creates HelperText
+        Create DemoText
+        Uses For loop in order to create and initalize arrays quickly
+    */    
+    
+    function CreateBoxText()
+    {
+        
+        this.TextBoxCreationArray.Add("Controls");
+        this.TextBoxCreationArray.Add("Demo");
+        this.TextBoxCreationArray.Add("Rules");
+        
+        this.HelperTextControl.Add("A Key is for Moving Left");
+        this.HelperTextControl.Add("D Key is for Moving Right");
+        this.HelperTextControl.Add("W Key is for Jumping");
+        this.HelperTextControl.Add("Press Record to Start and Stop Recording");
+        
+        this.DemoText.Add("Click to Record");
+        this.DemoText.Add("Input Keys");
+        this.DemoText.Add("Click Play to Execute");
+        
+        this.DemoText1 = this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,0,0));
+        this.DemoText2 = this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,0,0));
+        this.DemoText3 = this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,0,0));
+        
+        this.RuleTextCreationArray.Add("Reach The Objective within 1 full moveset");
+        this.RuleTextCreationArray.Add("Touching the hazard leads to death");
+        
+        this.RulesTutorial.Area.Size = Integer2(10,10);
+        
+        this.RulesText1 = this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,-6,0));
+        this.RulesText2 = this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(6,-11,0));
+        
+        this.RulesText1.SpriteText.Text = this.RuleTextCreationArray[0];
+        this.RulesText2.SpriteText.Text = this.RuleTextCreationArray[1];
+        
+        this.RulesText1.Area.Size = Integer2(20,20);
+        this.RulesText1.SpriteText.Align=1;
+        this.RulesText1.SpriteText.FontSize = 25;
+        
+        this.RulesText2.Area.Size = Integer2(5,20);
+        this.RulesText2.SpriteText.Align=0;
+        this.RulesText2.SpriteText.FontSize = 25;
+        
+        for(var i = 0; i < 3; ++i)
+        {
+            this.TextBoxHolderCreationArray.Add(this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,0,0)));
+            this.TextBoxHolderCreationArray[i].SpriteText.Color = this.DefaultTextColor;
+            this.TextBoxHolderCreationArray[i].SpriteText.Text = this.TextBoxCreationArray[i];
+            this.TextBoxHolderCreationArray[i].SpriteText.FontSize = 30;
+        }        
+            this.TextBoxHolderCreationArray[0].Transform.Translation = Real3(-10,4.8,0);
+            this.TextBoxHolderCreationArray[1].Transform.Translation = Real3(0,4.8,0);
+            this.TextBoxHolderCreationArray[2].Transform.Translation = Real3(10,4.8,0); 
+            this.DefaultSelection();   
+    }
+    
+    /*
+        function DefaultSelection used to check if SelectedValue smaller than array count and then assigns all to defaultcolor
+        executes UpdateText afterwards
+    */
+    
+    function DefaultSelection()
+    {
+        if(this.SelectedValue < this.BoxCreationArray.Count)
+        {
+            for(var i = 0; i < 3; ++i)
+            {
+                this.BoxCreationArray[i].Sprite.Color = this.DefaultColor;
+            }
+                this.BoxCreationArray[this.SelectedValue].Sprite.Color = this.DefaultSelectedBoxTextColor;
+        }
+        this.UpdateText();
+    }
+    
+    /*
+        changes text and runs defaultSelection again to know which button is being press
+    */
+    
+    function ChangingText(event:KeyboardEvent)
+    {
+        if(event.Key == Keys.Right || event.Key == Keys.D)
+        {
+            if(this.SelectedValue < this.BoxCreationArray.Count-1)
+            {
+                this.SelectedValue +=1;
+                this.DefaultSelection();
+            }
+
+        }
+        
+        if(event.Key == Keys.Left || event.Key == Keys.A)
+        {
+            if(this.SelectedValue > 0)
+            {
+                this.SelectedValue -=1;
+                this.DefaultSelection();                
+            }
+        }
+        
+        if(event.Key == Keys.Enter || event.Key == Keys.Back)
+        {
+            this.Space.LoadLevel(Level.Find("StartScreen01"));
+        }
+        
+    }
+    
+    /*
+        know which to hide and which things to show based on buttons being "selected"
+    */
+    
+    function UpdateText()
+    {
+        if(this.SelectedValue == 0 && this.HideControlText == true)
+        {
+
+            this.HideControlText = false;
+            this.RecordTutorial.Sprite.Visible = false;
+            this.DemoText1.SpriteText.Visible = false;
+            this.DemoText2.SpriteText.Visible = false;
+            this.DemoText3.SpriteText.Visible = false;
+            this.RulesTutorial.Sprite.Visible = false;
+            this.RulesText1.SpriteText.Visible = false;
+            this.RulesText2.SpriteText.Visible = false;
+            //this.RulesText3.SpriteText.Visible = false;
+            
+            for(var i = 0;i<4;++i)
+            {
+                this.RandomCog[i].Sprite.Visible = true;
+            }
+            
+            var defaultAreaSize = Integer2(2,2);
+            this.RandomCog[3].Transform.Translation = Real3(-12,4,5); //RecordBtn
+            //this.RandomCog[3].Area.Size = Integer2(2,1);
+            this.RandomCog[0].Transform.Translation = Real3(-12,1.5,5); //ButtonA
+            this.RandomCog[0].Area.Size = defaultAreaSize;
+            this.RandomCog[1].Transform.Translation = Real3(-12,-1.5,5); //ButtonS
+            this.RandomCog[1].Area.Size = defaultAreaSize;
+            this.RandomCog[2].Transform.Translation = Real3(-12,-4.5,5); //ButtonW
+            this.RandomCog[2].Area.Size = defaultAreaSize;
+
+            
+            this.HelperText.SpriteText.Text = this.HelperTextControl[this.SelectedValue];
+            this.HelperText.Area.Size = Integer2(20,2);
+            this.HelperText.Transform.Translation = Real3(-5.3,0.8,5);
+            this.HelperText.SpriteText.FontSize = 35;
+            
+            this.Helper2Text.SpriteText.Text = this.HelperTextControl[1];
+            this.Helper2Text.Area.Size = Integer2(20,2);
+            this.Helper2Text.Transform.Translation = Real3(-5.2,-2.1,5);
+            this.Helper2Text.SpriteText.FontSize = 35;
+            
+            this.Helper3Text.SpriteText.Text = this.HelperTextControl[2];
+            this.Helper3Text.Area.Size = Integer2(20,2);
+            this.Helper3Text.Transform.Translation = Real3(-6,-5.1,5);
+            this.Helper3Text.SpriteText.FontSize = 35;
+            
+            this.Helper4Text.SpriteText.Text = this.HelperTextControl[3];
+            this.Helper4Text.Area.Size = Integer2(20,2);
+            this.Helper4Text.Transform.Translation = Real3(-2.8,3.5,5);
+            this.Helper4Text.SpriteText.FontSize = 35;
+            
+            this.HelperText.SpriteText.Visible = true;
+            this.Helper2Text.SpriteText.Visible = true;
+            this.Helper3Text.SpriteText.Visible = true;
+            this.Helper4Text.SpriteText.Visible = true;
+        }
+        
+        else
+        {
+            if(this.RandomCog != null)
+            {
+                this.HideControlText = true;
+                for(var i = 0;i<4;++i)
+                {
+                    this.RandomCog[i].Sprite.Visible = false;
+                }
+                
+                this.HelperText.SpriteText.Visible = false;
+                this.Helper2Text.SpriteText.Visible = false;
+                this.Helper3Text.SpriteText.Visible = false;
+                this.Helper4Text.SpriteText.Visible = false;
+                
+                this.DemoText1.SpriteText.Visible = false;
+                this.DemoText2.SpriteText.Visible = false;
+                this.DemoText3.SpriteText.Visible = false;
+                
+                this.RulesTutorial.Sprite.Visible = false;
+                this.RulesText1.SpriteText.Visible = false;
+                this.RulesText2.SpriteText.Visible = false;
+                //this.RulesText3.SpriteText.Visible = false;
+            }
+            
+            if(this.SelectedValue == 1)
+            {
+                this.RecordTutorial.Sprite.Visible = true;
+                this.RecordTutorial.Area.Size = Integer2(10,10);
+
+                this.DemoText1.SpriteText.Visible = true;
+                this.DemoText2.SpriteText.Visible = true;
+                this.DemoText3.SpriteText.Visible = true;
+                        
+                this.DemoText1.SpriteText.FontSize = 20;
+                this.DemoText1.Area.Size = Integer2(10,20);
+                this.DemoText1.SpriteText.Text = this.DemoText[0];
+                this.DemoText1.Transform.Translation = Real3(-3.5,-5,0);
+                
+                this.DemoText2.SpriteText.FontSize = 20;
+                this.DemoText2.Area.Size = Integer2(10,20);
+                this.DemoText2.SpriteText.Text = this.DemoText[1];
+                this.DemoText2.Transform.Translation = Real3(1.7,-7.5,0);
+                
+                this.DemoText3.SpriteText.FontSize = 20;
+                this.DemoText3.Area.Size = Integer2(5,20);
+                this.DemoText3.SpriteText.Text = this.DemoText[2];
+                this.DemoText3.Transform.Translation = Real3(-3.3,-6.6,0);
+            }
+            
+            if(this.SelectedValue == 2)
+            {
+                
+                this.HideControlText = false;
+                this.RecordTutorial.Sprite.Visible = false;
+                this.DemoText1.SpriteText.Visible = false;
+                this.DemoText2.SpriteText.Visible = false;
+                this.DemoText3.SpriteText.Visible = false;
+                this.RulesTutorial.Sprite.Visible = false;
+                this.RulesText1.SpriteText.Visible = false;
+                this.RulesText2.SpriteText.Visible = false;
+               // this.RulesText3.SpriteText.Visible = false;
+                
+                this.RulesTutorial.Sprite.Visible = true;
+                this.RulesText1.SpriteText.Visible = true;
+                this.RulesText2.SpriteText.Visible = true;
+                //this.RulesText3.SpriteText.Visible = true;
+            }
+        }
+        
+        //Guider text to inform users of ways to exit out of current screen
+        this.GuiderText.SpriteText.Text = "Press Back or Enter to return to main menu";
+        this.GuiderText.SpriteText.FontSize = 30;
+        this.GuiderText.Transform.Translation = Real3(0,-9,0);
+        this.GuiderText.Area.Size = Integer2(20,5);
+    }
+
+
+}

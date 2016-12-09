@@ -1,0 +1,126 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the record & play button does when clicked. Changes the game state
+        of the game to either record state or execute state depending on previous state.
+
+*/
+
+class RecordButtonLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Default and Hovered Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    [Property]
+    var DefaultPlaySprite : SpriteSource;
+    [Property]
+    var HoveredPlaySprite : SpriteSource;
+    
+    //Variable to store menu cog required
+    var GameMenu : Cog = null;
+    var WinMenu : Cog = null;
+    var LoseMenu : Cog = null;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.GameMenu = this.Space.FindObjectByName("GameMenu");
+        this.WinMenu = this.Space.FindObjectByName("WinMenu");
+        this.LoseMenu = this.Space.FindObjectByName("LoseMenu");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click if game is not paused
+        if(!this.GameMenu.GameMenuLogic.IsPaused && !this.LoseMenu.LoseScript.HasLost && !this.WinMenu.WinMenuLogic.HasWon)
+        {
+            this.ClickedState();
+        }
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over if game is not paused
+        if(!this.GameMenu.GameMenuLogic.IsPaused)
+        {
+            this.HoveredState();
+        }
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit if game is not paused
+        if(!this.GameMenu.GameMenuLogic.IsPaused)
+        {
+            this.DefaultState();
+        }
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Check if game state is in planning state
+        if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 1)
+        {
+            //Change game state to record state
+            this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState = 2;
+            this.MainSpace.FindObjectByName("Player").PlayerController.RecStart = true;
+            
+            //Display movement timer
+            this.Space.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(true);
+        }
+        //Check if game state is in record state
+        else if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 2)
+        {
+            //Change game state to execute state
+            this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState = 3;
+        }
+    }
+    
+    function DefaultState()
+    {
+        //Check if game state is in planning state
+        if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 1)
+        {
+            //Set sprite to default record sprite
+            this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+        }
+        //Check if game state is in record state
+        else if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 2)
+        {
+            //Set sprite to default play sprite
+            this.Owner.Sprite.SpriteSource = this.DefaultPlaySprite;
+        }
+    }
+
+    function HoveredState()
+    {
+        //Check if game state is in planning state
+        if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 1)
+        {
+            //Set sprite to hover record sprite
+            this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+        }
+        //Check if game state is in record state
+        else if(this.MainSpace.FindObjectByName("LevelSettings").GameStateController.GameState == 2)
+        {
+            //Set sprite to hover play sprite
+            this.Owner.Sprite.SpriteSource = this.HoveredPlaySprite;
+        }
+    }
+}

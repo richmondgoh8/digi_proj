@@ -1,0 +1,56 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for how the items should behave. Items spawned will be destroyed if
+        it is spawned in an illegal manner.
+
+*/
+
+class ItemController : ZilchComponent
+{
+    //Variable to store main space
+    var HUDSpace : Space = null;
+    
+    //Store item position in the inventory
+    var ItemPosition : Integer = 0;
+    
+    //Boolean to check if item is created
+    var CreatedItem : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        
+        //Connect CollisionEvent and UpdateEvent
+        Zero.Connect(this.Owner, Events.CollisionStarted, this.OnCollision);
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+    
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Destroy item when game is restart
+        if(this.HUDSpace.FindObjectByName("GameMenu").GameMenuLogic.IsRestart)
+        {
+            this.Owner.Destroy();
+        }
+    }
+    
+    function OnCollision(event: CollisionEvent)
+    {
+        //Destroy item when item is out of the border/collides with hazard
+        if(event.OtherObject.Name == "Water" || event.OtherObject.Name == "Lava" || event.OtherObject.Name == "GroundBorder")
+        {
+            this.Owner.Destroy();
+            if(!this.CreatedItem)
+            {
+                this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RespawnItem(this.ItemPosition);
+                this.CreatedItem = true;
+            }
+        }
+    }
+}

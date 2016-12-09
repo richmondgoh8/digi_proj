@@ -1,0 +1,31 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Creates a Space and load HUD Screen level onto the created Space
+
+*/
+
+class HUDCreator : ZilchComponent
+{
+    //Store HUDScreen level
+    var HUDLevel : Level = Level.Find("HUDScreen");
+    
+    //Store HUD Space
+    var HUDSpace : Space;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Creates HUD Space only if it is not created
+        if(this.GameSession.FindSpaceByName("HUDSpace") == null)
+        {
+            this.HUDSpace = this.GameSession.CreateNamedSpace("HUDSpace", Archetype.Find("Space"));
+            
+            //Loads HUDScreen level onto HUDSpace
+            this.HUDSpace.LoadLevel(this.HUDLevel);
+        }
+    }
+}

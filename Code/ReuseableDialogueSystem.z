@@ -1,0 +1,250 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Richmond Goh
+
+Brief Description: Allow Reuseability of dialog system for all to create dialogue based text
+*/
+
+class ReuseableDialogueSystem : ZilchComponent
+{
+    //FakeDelay ensures that it does not straight away start at runtime.
+    var FakeDelay:Boolean = true;
+    
+    //Allows Developer to key in how many text is going to be shown to the user
+    [Property]
+    var SizeOfTextArray:Integer;
+    //Allows Developer to key in number of speakers
+    [Property]
+    var NumberofSpeaker:Integer;
+    //Searches for Speaker 1 Image if any
+    [Property]
+    var Speaker1Image:Archetype;
+    //Searches for Speaker 2 Image if any
+    [Property]
+    var Speaker2Image:Archetype;
+    //Searches for Speaker 3 Image if any
+    [Property]
+    var Speaker3Image:Archetype;
+    //Searches for empty dialogue box for placeholder
+    
+    //Cogs are used to hold speaker images for hiding and showing purposes
+    var Speaker1:Cog;
+    var Speaker2:Cog;
+    var Speaker3:Cog;
+    //Creates an empty sprite
+    [Property]
+    var TextTemplate:Archetype;
+    //Holds an empty sprite
+    var TextTemplateHolder:Cog;
+    
+    [Property]
+    var DialogueEmptyBox:Archetype;
+    
+    //Searches for empty dialogue speaker box for placeholder
+    [Property]
+    var DialogueEmptySpeakerBox:Archetype;
+    
+    //CheckRate and NextCheck are used together as a control for runtime events
+    [Property]
+    var CheckRate:Real = 0.5;
+    var NextCheck:Real;
+    
+    //Checks if text is still doing a substring
+    var IsDisplayingText:Boolean = true;
+    
+    //Arrays to store speaker order
+    var SpeakerOrderArray:Array[String] = Array[String]();
+    
+    //Arrays to store speaker text order
+    var SpeakerTextOrderArray:Array[String] = Array[String]();
+    
+    var SpeakerNameHolder:Cog;
+    
+    //Used to determine which text/order to run first
+    var SelectedValue:Integer = 0;
+    
+    //Text Streamer
+    var Streamer:Integer = 0;
+    
+    var StreamCount:Integer = 0;
+    
+    [Property]
+    var NextLevel:Level;
+    
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        //Call a function to add both text and speaker order to the array
+        this.AddSpeakerOrderText();
+        Zero.Connect(Zero.Keyboard, Events.KeyDown, this.OnEnterUpdate);
+    }
+    
+    function AddSpeakerOrderText()
+    {
+        //Adding Dialogue text to said array
+        this.SpeakerTextOrderArray.Add("Not bad for your first try, but it isn't gonna get any easier!");
+        this.SpeakerTextOrderArray.Add("Easier? I thought it was hard enough!");
+        this.SpeakerTextOrderArray.Add("Well, time to get the robot prepared for jumping over obstacles!");
+        this.SpeakerTextOrderArray.Add("Hmm, this sounds quite challenging...");
+        
+        //Adding Dialogue Speaker to said Array
+        this.SpeakerOrderArray.Add("RingMaster");
+        this.SpeakerOrderArray.Add("Player");
+        this.SpeakerOrderArray.Add("RingMaster");
+        this.SpeakerOrderArray.Add("Player");
+        
+        this.CreateEmptyBoxes();
+    }
+    
+    function CreateEmptyBoxes()
+    {
+        //Create Empty Box for Dialogue Text
+        var tmpBoxDefaultLocation:Real3 = Real3(0,-3,0);
+        var tmpholder = this.Space.CreateAtPosition(this.DialogueEmptyBox,tmpBoxDefaultLocation);
+        tmpholder.Area.Size = Integer2(17,3);
+        //Create Empty Box for Speaker Names
+        var tmpSpeakerBoxDefaultLocation:Real3 = Real3(-6,-1,0);
+        var tmpSpeakerBoxHolder = this.Space.CreateAtPosition(this.DialogueEmptySpeakerBox,tmpSpeakerBoxDefaultLocation);
+        tmpSpeakerBoxHolder.Area.Size = Integer2(3,1);
+        tmpSpeakerBoxHolder.Sprite.Color = Real4(200.0/255,200.0/255,255.0/255,0.9);
+        //Once all created, creates speakers and set them to invisible
+        this.CreateSpeakerandInvisible();
+        
+    }
+    
+    function CreateSpeakerandInvisible()
+    {
+        var defaultSpeakerLocation = Real3(0,1,0);
+        var defaultSpeakerSize = Integer2(5,5);
+        var defaultSpeakerNameLocation = Real3(-4.73,-3.3,0);
+        
+        //Creates Speaker1, Give it a default size and default location
+        this.Speaker1 = this.Space.CreateAtPosition(this.Speaker1Image,defaultSpeakerLocation);
+        this.Speaker1.Area.Size = defaultSpeakerSize;
+        this.Speaker1.Sprite.Visible = false;
+        //Creates Speaker2, Give it a default size and default location
+        this.Speaker2 = this.Space.CreateAtPosition(this.Speaker2Image,defaultSpeakerLocation);
+        this.Speaker2.Area.Size = defaultSpeakerSize;
+        this.Speaker2.Sprite.Visible = false;
+        
+        this.SpeakerNameHolder = this.Space.CreateAtPosition(this.TextTemplate, defaultSpeakerNameLocation);
+        this.SpeakerNameHolder.SpriteText.Text = "";
+        this.SpeakerNameHolder.Area.Size = Integer2(5,5);
+        this.SpeakerNameHolder.SpriteText.Align = 0;
+        this.SpeakerNameHolder.SpriteText.FontSize = 20;
+        
+        this.TextTemplateHolder = this.Space.CreateAtPosition(this.TextTemplate,Real3(0,-3.1,0));
+        this.TextTemplateHolder.SpriteText.Text = "";
+        this.TextTemplateHolder.Area.Size = Integer2(13,2);
+        this.TextTemplateHolder.SpriteText.FontSize = 25;
+        this.TextTemplateHolder.SpriteText.Align = 0;
+        
+        this.SetFirstDialogueInstance();
+        
+    }
+    /*
+        Setting up of first Speaker
+        Setting up of first Dialogue
+        Setting up of first Speaker name
+    */
+    function SetFirstDialogueInstance()
+    {
+        if(this.SelectedValue == 0)
+        {
+            if(this.SpeakerOrderArray[this.SelectedValue] == "RingMaster")
+            {
+                //Speaker 2 refers to Ringmaster
+                this.Speaker2.Sprite.Visible = true;
+                
+            }
+            
+            else if(this.SpeakerOrderArray[this.SelectedValue] == "Player")
+            {
+                //Speaker 1 refers to Player
+                this.Speaker1.Sprite.Visible = true;
+            }
+            //Once all is default placeholder is created, lets OnLogicUpdateRun
+            this.FakeDelay = false;
+            this.SpeakerNameHolder.SpriteText.Text = this.SpeakerOrderArray[this.SelectedValue];
+        }
+    }
+    
+    //OnLogicUpdate Function only runs when everything is created and fakedelay is set to false
+    function OnLogicUpdate(event : UpdateEvent)
+    {   
+        if(this.FakeDelay == false)
+        {
+            if(event.TimePassed > this.NextCheck && this.Streamer < this.SpeakerTextOrderArray[this.StreamCount].Count )
+            {
+                //Runs every 0.5 seconds based on checkrate
+                this.NextCheck = event.TimePassed + this.CheckRate;
+                //this.IsDisplayingText = true;
+                this.Streamer +=1;
+                var greeting = this.SpeakerTextOrderArray[this.StreamCount];
+                this.TextTemplateHolder.SpriteText.Text = greeting.SubStringFromRuneIndices(0,this.Streamer);
+                this.IsDisplayingText = true;
+            }
+            else if(this.IsDisplayingText == true)
+            {
+                this.IsDisplayingText = false;
+            }
+        }
+    }
+    
+    function OnEnterUpdate(event:KeyboardEvent)
+    {
+        if(!this.IsDisplayingText && this.StreamCount < this.SpeakerTextOrderArray.Count - 1 && event.Key == Keys.Enter)
+        {
+            this.StreamCount += 1;
+            this.TextTemplateHolder.SpriteText.Text = "";
+            this.Streamer = 0;
+            this.SpeakerNameHolder.SpriteText.Text = this.SpeakerOrderArray[this.StreamCount];
+            
+            if(this.SpeakerOrderArray[this.StreamCount] == "RingMaster")
+            {
+                //Speaker 2 refers to Ringmaster
+                this.Speaker1.Sprite.Visible = false;
+                this.Speaker2.Sprite.Visible = true;
+                
+            }
+            
+            else if(this.SpeakerOrderArray[this.StreamCount] == "Player")
+            {
+                //Speaker 1 refers to Player
+                this.Speaker2.Sprite.Visible = false;
+                this.Speaker1.Sprite.Visible = true;
+            }
+        }
+        
+        else if(this.IsDisplayingText && this.StreamCount < this.SpeakerTextOrderArray.Count - 1 && event.Key == Keys.Enter)
+        {
+            this.StreamCount += 1;
+            this.TextTemplateHolder.SpriteText.Text = "";
+            this.Streamer = 0;
+            this.SpeakerNameHolder.SpriteText.Text = this.SpeakerOrderArray[this.StreamCount];
+            
+            if(this.SpeakerOrderArray[this.StreamCount] == "RingMaster")
+            {
+                //Speaker 2 refers to Ringmaster
+                this.Speaker1.Sprite.Visible = false;
+                this.Speaker2.Sprite.Visible = true;
+                
+            }
+            
+            else if(this.SpeakerOrderArray[this.StreamCount] == "Player")
+            {
+                //Speaker 1 refers to Player
+                this.Speaker2.Sprite.Visible = false;
+                this.Speaker1.Sprite.Visible = true;
+            }
+            
+        }
+        else if(event.Key == Keys.Enter)
+        {
+            Zero.Mouse.Trapped = false;
+            Zero.Mouse.Cursor = Cursor.Arrow;
+            this.Space.LoadLevel(this.NextLevel);
+        }
+    }
+}

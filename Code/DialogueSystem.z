@@ -1,0 +1,287 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Richmond Goh
+
+Brief Description: Control of DialogueSystem before proceeding on to level.
+*/
+
+    /*
+        FakeDelay helps to prevent a bug should the text appear too fast which will sometimes cause a runtime error
+        Declaring to use for Length of Array
+        StreamCount allows to know which text to appear in order
+        ShowText Checks if text should still show
+        IsDisplayingText Checks if text is still appearing 1 by 1
+    */
+
+class DialogueSystem : ZilchComponent
+{
+    var FakeDelay:Boolean = false;
+    var Length : Integer = 4; 
+    var StreamCount:Integer = 0;
+    var TextTemplate:Archetype;
+    var TextHolder:Cog;
+    
+    var SpeakerTextArray : Array[String] = Array[String]();
+    var TextArray : Array[String] = Array[String]();
+    var TimeLeft:Real = 0;
+
+    var ShowText:Boolean = true;
+    var CheckRate:Real = 0.0;
+    var NextCheck:Real;
+    var Streamer:Integer = 0;
+    var IsDisplayingText:Boolean = true;
+    var NextScreen: Level = Level.Find("Level01");
+    
+    [Property]
+    var Speaker1:Archetype;
+    
+    [Property]
+    var Speaker2:Archetype;
+    
+    var Speaker:Cog;
+    
+    /*
+        Speaker1 and 2 are represented as Archetype
+        Default color are pre-determined to prevent mass rechanging if ParallaxOcclusionMapping
+        DefaultSpeakerLocation is used to prevent retyping of too many variables
+        SpeakerQueue is used to determine which speaker to show during dialogue
+    */
+    
+    [Property]
+    var SpeakerBox:Archetype;
+    var SpeakerBoxSpawn:Cog;
+    
+    var SpeakerTextSpawn:Cog;
+    var WhiteText:Real4 = Real4(255.0/255,255.0/255,255.0/255,1);
+    
+    var DefaultTextStartingPosition:Real3 = Real3(0,-2.7,0);
+    
+    var SpeakerQueue:Array[Integer] = Array[Integer]();
+    
+    var DefaultSpeakerLocation:Real3 = Real3(0,1.6,0);
+    
+    /*
+        under Initalization function
+        Keyboard and LogicUpdate is Connected
+        Archetype is assigned to TextTemplate
+        AddTextToArray function is executed once
+    */
+    
+    function Initialize(init : CogInitializer)
+    {
+        
+        Zero.Connect(Zero.Keyboard, Events.KeyDown, this.FilterText);
+        Zero.Connect(this.Space,Events.LogicUpdate,this.OnLogicUpdate);
+
+        this.TextTemplate = Archetype.Find("TextPlaceHolder");
+        this.AddTextToArray();
+        
+    }
+    
+    /*
+        Adds text to show to display for DialogueSystem
+        Adds Speaker order
+        Runs function this.CreateText when all is done
+    */
+    
+    function AddTextToArray()
+    {
+
+            this.TextArray.Add("Hey!! GET THIS ROBOT WORKING BEFORE THE SHOW STARTS!");
+            this.TextArray.Add("Show?! what show?");
+            this.TextArray.Add("Don't play dumb with me, you better program this robot before the death obstacle challenge! i do not want to see any hiccups!");
+            this.TextArray.Add("Hmm, I think I better start on getting this working!");
+            
+            this.SpeakerTextArray.Add("Ringmaster");
+            this.SpeakerTextArray.Add("Player");
+            this.SpeakerTextArray.Add("Ringmaster");
+            this.SpeakerTextArray.Add("Player");
+            this.CreateSpeakerText();
+            
+            this.SpeakerQueue.Add(0);
+            
+            
+            this.CreateText();
+    }
+    
+    /*
+        CreateSpeakerText function is used to created default dialogue box for speaker
+        helps to set default area size of SpeakerTextArray
+        helps to set default FontSize of SpeakerTextArray
+        helps to set Align of text to be Level
+        helps to set sprite color to be default
+    */
+    
+    function CreateSpeakerText()
+    {
+
+        this.SpeakerBoxSpawn = this.Space.CreateAtPosition(this.SpeakerBox,Real3(-6.2,-0.5,0));
+        this.SpeakerBoxSpawn.Area.Size = Integer2(3,1);
+        this.SpeakerBoxSpawn.Sprite.Color = Real4(200.0/255,200.0/255,255.0/255,0.9);
+        this.SpeakerTextSpawn = this.Space.CreateAtPosition(this.TextTemplate,Real3(-2.15,-1.85,0));
+        this.SpeakerTextSpawn.SpriteText.Color = this.WhiteText;
+        this.SpeakerTextSpawn.Area.Size = Integer2(10,3);
+        this.SpeakerTextSpawn.SpriteText.FontSize = 15;
+        this.SpeakerTextSpawn.SpriteText.Align = 0;
+    }
+    
+    function CreateText()
+    {
+        if(this.StreamCount == 0)
+        {
+            this.TextHolder = this.Space.CreateAtPosition(this.TextTemplate,this.DefaultTextStartingPosition);
+            this.TextHolder.SpriteText.Color= this.WhiteText;
+            this.FakeDelay = true;
+            this.Speaker = this.Space.CreateAtPosition(this.Speaker2,this.DefaultSpeakerLocation);
+            this.Speaker.Area.Size = Integer2(5,5);
+            
+        }
+    }
+    
+    /*
+    Filter Text adds 1 to the streamer count and also ensure that the next screen is loaded when the last story is displayed
+    Ensures that before new speaker text content is created, the orginal is destroyed
+    Allows user to proceed next when text is fully created
+    */
+    function FilterText(event:KeyboardEvent)
+    {
+        if (event.Key == Keys.Enter && this.IsDisplayingText == false)
+        {
+            if(this.TextHolder != null)
+            {
+                this.TextHolder.Destroy();
+                this.StreamCount+=1;
+                this.Streamer = 0;
+                this.Speaker.Destroy();
+                
+                if(this.StreamCount != this.Length)
+                {
+                    this.TextHolder = this.Space.CreateAtPosition(this.TextTemplate,this.DefaultTextStartingPosition);
+                    this.TextHolder.SpriteText.Color= this.WhiteText;
+                    
+                    if(this.SpeakerQueue[0] == 0)
+                    {
+                        this.SpeakerQueue[0] = 1;
+                        this.Speaker = this.Space.CreateAtPosition(this.Speaker1,this.DefaultSpeakerLocation);
+                        this.Speaker.Area.Size = Integer2(5,5);
+                    }
+                    else if(this.SpeakerQueue[0] == 1)
+                    {
+                        this.SpeakerQueue[0] = 0;
+                        this.Speaker = this.Space.CreateAtPosition(this.Speaker2,this.DefaultSpeakerLocation);
+                        this.Speaker.Area.Size = Integer2(5,5);                        
+                    }
+                }
+                
+                else
+                {
+                    Zero.Mouse.Trapped = false;
+                    Zero.Mouse.Cursor = Cursor.Arrow;
+                    this.Space.LoadLevel(this.NextScreen);
+                }
+            }
+        }
+        
+        if(event.Key == Keys.Enter && this.IsDisplayingText == true)
+        {
+            if(this.TextHolder != null)
+            {
+                this.TextHolder.Destroy();
+                this.StreamCount+=1;
+                this.Streamer = 0;
+                this.Speaker.Destroy();
+                
+                if(this.StreamCount != this.Length)
+                {
+                    this.TextHolder = this.Space.CreateAtPosition(this.TextTemplate,this.DefaultTextStartingPosition);
+                    this.TextHolder.SpriteText.Color = this.WhiteText;
+                    if(this.SpeakerQueue[0] == 0)
+                    {
+                        this.SpeakerQueue[0] = 1;
+                        this.Speaker = this.Space.CreateAtPosition(this.Speaker1,this.DefaultSpeakerLocation);
+                        this.Speaker.Area.Size = Integer2(5,5);
+                    }
+                    
+                    else if(this.SpeakerQueue[0] == 1)
+                    {
+                        this.SpeakerQueue[0] = 0;
+                        this.Speaker = this.Space.CreateAtPosition(this.Speaker2,this.DefaultSpeakerLocation);
+                        this.Speaker.Area.Size = Integer2(5,5);                        
+                    }                    
+                    
+                    //this.TextHolder.SpriteText.Text = this.TextArray[this.StreamCount];
+                }
+                
+                else
+                {
+                    Zero.Mouse.Trapped = false;
+                    Zero.Mouse.Cursor = Cursor.Arrow;
+                    this.Space.LoadLevel(this.NextScreen);
+                }
+            }
+        }
+    }
+    
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        this.TimeLeft += event.Dt;
+        /*
+            This function ensures that the text are displayed from arrays 1 to the max 
+        */
+        if(event.TimePassed > this.NextCheck && this.FakeDelay == true && Math.Round(this.TimeLeft - this.CheckRate) >= 0)
+        {
+            if(this.Streamer <= this.TextArray[this.StreamCount].Count - 1 && this.StreamCount==0)
+            {
+                this.IsDisplayingText = true;
+                this.Streamer +=1;
+                this.NextCheck = event.TimePassed + this.CheckRate;
+                var greeting = this.TextArray[0];
+                this.TextHolder.SpriteText.Text = greeting.SubStringFromRuneIndices(0,this.Streamer);
+                this.SpeakerTextSpawn.SpriteText.Text = this.SpeakerTextArray[this.StreamCount];
+                //Console.WriteLine(greeting.SubStringFromRuneIndices(0,this.Streamer));
+            }
+            
+            else if(this.Streamer <= this.TextArray[this.StreamCount].Count - 1 && this.StreamCount==1)
+            {
+                this.IsDisplayingText = true;
+                this.Streamer +=1;
+                this.NextCheck = event.TimePassed + this.CheckRate;
+                var greeting = this.TextArray[this.StreamCount];
+                this.SpeakerTextSpawn.SpriteText.Text = this.SpeakerTextArray[this.StreamCount];
+                this.TextHolder.SpriteText.Text = greeting.SubStringFromRuneIndices(0,this.Streamer);
+                //Console.WriteLine(greeting.SubStringFromRuneIndices(0,this.Streamer));
+            }
+            
+            else if(this.Streamer <= this.TextArray[this.StreamCount].Count - 1 && this.StreamCount==2)
+            {
+                this.IsDisplayingText = true;
+                this.Streamer +=1;
+                this.NextCheck = event.TimePassed + this.CheckRate;
+                var greeting = this.TextArray[this.StreamCount];
+                this.TextHolder.SpriteText.Text = greeting.SubStringFromRuneIndices(0,this.Streamer);
+                this.SpeakerTextSpawn.SpriteText.Text = this.SpeakerTextArray[this.StreamCount];
+                //Console.WriteLine(greeting.SubStringFromRuneIndices(0,this.Streamer));
+            }
+            
+            else if(this.Streamer <= this.TextArray[this.StreamCount].Count - 1 && this.StreamCount==3)
+            {
+                this.IsDisplayingText = true;
+                this.Streamer +=1;
+                this.NextCheck = event.TimePassed + this.CheckRate;
+                var greeting = this.TextArray[this.StreamCount];
+                this.TextHolder.SpriteText.Text = greeting.SubStringFromRuneIndices(0,this.Streamer);
+                this.SpeakerTextSpawn.SpriteText.Text = this.SpeakerTextArray[this.StreamCount];
+                //Console.WriteLine(greeting.SubStringFromRuneIndices(0,this.Streamer));
+            }
+            
+            
+            else
+            {
+                /*This allows for the enter key to work again*/
+                this.IsDisplayingText = false;
+            }
+           
+        }
+    }
+}

@@ -1,0 +1,51 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Controllers the collider attached to the player to enable/disable jumping of the player
+*/
+
+//This script controls the check to see if the player is able to jump
+class JumpController : ZilchComponent
+{
+    //This function initialize the things that would be used for this script and only run once
+    function Initialize(init : CogInitializer)
+    {
+        //Enable the functions for collision started and ended in the two functions
+        
+        //Connect the CollisionEnded event with the OnCollisionEnd function
+        Zero.Connect(this.Owner, Events.CollisionEnded, this.OnCollisionEnd);
+        
+        //Connect the CollisionStarted event with the OnCollision function
+        Zero.Connect(this.Owner, Events.CollisionStarted, this.OnCollision);
+    }
+
+    //This function only runs when the object that this script attached to
+    //Colliders with a different collider
+    function OnCollision(event: CollisionEvent)
+    {
+        //Checking to see if the other object that it is colliding with is a hazard
+        //If it is a hazard then, it cannot enter the if statement
+        if(event.OtherObject.ArchetypeName != "Hazard")
+        {
+            //Console.WriteLine("Entered`event.OtherObject.Name`");
+            
+            //Enabling jump inside the player controller script
+            this.Owner.Parent.PlayerController.Jumpable = true;
+            
+            //Console.WriteLine("Jumpable");
+        }
+    }
+    
+    function OnCollisionEnd(event: CollisionEvent)
+    {
+        //Console.WriteLine("Exited`event.OtherObject.Name`");
+        
+        //if collision has ended, then set it such that the player cannot jump anymore
+        //i.e. disabling jump while in midair
+        this.Owner.Parent.PlayerController.Jumpable = false;
+        
+        //Console.WriteLine("Jumpable");
+    }
+}

@@ -1,0 +1,56 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Affects what happens when the player loses
+*/
+
+//This script is called when the player dies/loses
+class LoseScript : ZilchComponent
+{
+    //Sprites for button are set to property so that the sprite source can be directly attached to the object
+    [Property]
+    var DefaultSprite : SpriteSource;
+    
+    //Same here but with a different sprite for when the mouse is hovering over it
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    //Having a variable to store the mainspace in
+    var MainSpace : Space = null;
+    
+    //Boolean to check if player has lost
+    var HasLost : Boolean = false;
+    
+    //This function is run once to initialize variables
+    function Initialize(init : CogInitializer)
+    {
+        //Grabbing the main space and setting it into the main space variable that have been created
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        
+        //Connecting the mouse down event to this script
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+    }
+    
+    //When the mouse is pressed
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        this.ClickedState();                                                                //Switch to clicked state = load Start screen
+    }
+    
+    //And when the press is a click
+    function ClickedState()
+    {
+        //If it is, then show the lose screen
+        this.Space.FindObjectByName("LoseMenu").Sprite.Visible = false;
+        this.Space.FindObjectByName("LoseMenu").LoseScript.HasLost = false;
+        this.Space.FindObjectByName("LoseText").Sprite.Visible = false;
+        this.Space.FindObjectByName("ResetText").Sprite.Visible = false;
+        
+        this.MainSpace.FindObjectByName("LevelSettings").GameStateController.Reset();
+        
+        //It will unpause the game
+        this.MainSpace.TimeSpace.TogglePause();
+    }
+}

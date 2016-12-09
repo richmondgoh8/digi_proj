@@ -1,0 +1,182 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions which allows the item to be drag around using the mouse.and the ability to spawn
+        the item at mouse position.
+
+*/
+
+class ItemLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Variable to store cog required
+    var Player : Cog = null;
+    var GameMenu : Cog = null;
+    var WinMenu : Cog = null;
+    var LoseMenu : Cog = null;
+    
+    //Variable for spawning object
+    var SpawningItem : Cog = null;
+    var SpawnedItem : Cog = null;
+    
+    //Boolean to check if item is selected
+    var IsSelected : Boolean = false;
+    
+    //Variable to store archetype required
+    var Ramp : Archetype = Archetype.Find("Ramp");
+    var Crate : Archetype = Archetype.Find("Crate");
+    
+    //Variable to store item type and position
+    var ItemType : Integer = 0;
+    var ItemPosition : Integer = 0;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.GameMenu = this.Space.FindObjectByName("GameMenu");
+        this.WinMenu = this.Space.FindObjectByName("WinMenu");
+        this.LoseMenu = this.Space.FindObjectByName("LoseMenu");
+        
+        //Initialize item type based on archetype name
+        if(this.Owner.ArchetypeName == "RampItem")
+            this.ItemType = 1;
+        else if(this.Owner.ArchetypeName == "CrateItem")
+            this.ItemType = 2;
+        
+        //Connect ViewportMouseEvent required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        
+        //Connect UpdateEvent
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Check if item is selected
+        if(this.IsSelected)
+            //Execute drag function
+            this.OnDrag();
+        
+        //Check if player is in game level
+        if(this.IsGameLevel())
+        {
+            //Check if game state is in planning state
+            if(this.MainSpace.LevelSettings.GameStateController.GameState == 1)
+            {
+                //Set to not display item
+                if(!this.Owner.Sprite.Visible)
+                    this.DisplayItem(true);
+            }
+            //Check if game state is in recording state
+            else if(this.MainSpace.LevelSettings.GameStateController.GameState == 2)
+            {
+                //Set to display item
+                if(this.Owner.Sprite.Visible)
+                    this.DisplayItem(false);
+            }
+        }
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click if condition is met
+        if(!this.GameMenu.GameMenuLogic.IsPaused && !this.WinMenu.WinMenuLogic.HasWon && !this.LoseMenu.LoseScript.HasLost)
+            if(!this.IsSelected)
+                //Set boolean to true that item is selected
+                this.IsSelected = true;
+    }
+    
+    //Function that allows dragging and dropping of item
+    function OnDrag()
+    {
+        //Retrieve mouse position relative to world space
+        var mouseScreenPosition = Zero.Mouse.ScreenPosition;
+        var mouseWorldPosition = this.LevelSettings.CameraViewport.ScreenToWorldZPlane(mouseScreenPosition, 0);
+        
+        //Check if left mouse button is down
+        if(Zero.Mouse.IsButtonDown(MouseButtons.Left))
+        {
+            //Set item translation to mouse position
+            var position = mouseWorldPosition + Real3(0, 0, 1);
+            this.Owner.Transform.Translation = position;
+        }
+        //Check if left mouse button is released
+        else
+        {
+            //Destroy item on HUD space
+            if(this.SpawningItem != null)
+                this.SpawningItem.Destroy();
+            //Spawn item on main space
+            if(this.SpawnedItem == null)
+            {
+                this.SpawnedItem = this.CreateItem(this.MainSpace, this.ItemType);
+                this.SpawnedItem.ItemController.ItemPosition = this.ItemPosition;
+                
+                //Destroy item from inventory
+                this.DestroyItem();
+            }
+            
+            //Set boolean for item is not selected anymore
+            this.IsSelected = false;
+        }
+    }
+    
+    //Function that create and return specified item at specified space
+    function CreateItem(space : Space, itemType : Integer) : Cog
+    {
+        //Retrieve mouse position relative to world position
+        var mouseScreenPosition = Zero.Mouse.ScreenPosition;
+        var mouseWorldPosition = Real3(0, 0, 1);
+        
+        //Check if it is HUD space
+        if(space == this.Space)
+            //Get mouse position from relative to HUD space
+            mouseWorldPosition = this.LevelSettings.CameraViewport.ScreenToWorldZPlane(mouseScreenPosition, 1);
+        //Check if it is main space
+        else
+        {
+            //Get mouse position from relative to main space
+            mouseWorldPosition = this.MainSpace.LevelSettings.CameraViewport.ScreenToWorldZPlane(mouseScreenPosition, 1);
+        }
+        
+        //Set archetype to spawn
+        var archetypeToSpawn = Archetype.Empty;
+        if(itemType == 1)
+            archetypeToSpawn = this.Ramp;
+        else if(itemType == 2)
+            archetypeToSpawn = this.Crate;
+        
+        //Return created item
+        return space.CreateAtPosition(archetypeToSpawn, mouseWorldPosition);
+    }
+    
+    //Function that display item in inventory base on input boolean parameter
+    function DisplayItem(bool : Boolean)
+    {
+        this.Owner.Sprite.Visible = bool;
+    }
+    
+    //Function that destroy item in inventory
+    function DestroyItem()
+    {
+        this.Owner.Destroy();
+    }
+    
+    //Function to check if player is in game level
+    function IsGameLevel() : Boolean
+    {
+        for(var i = 1; i < 5; ++i)
+        {
+            if(this.MainSpace.CurrentLevel.Name == "Level0`i`")
+                return true;
+        }
+        return false;
+    }
+}

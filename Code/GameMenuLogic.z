@@ -1,0 +1,93 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions to trigger the in-game pause menu when Escape button is pressed. 
+
+*/
+
+class GameMenuLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Variables to store required button cog
+    var HowToPlay : Cog = null;
+    var QuitGame : Cog = null;
+    
+    //Boolean variables
+    var IsPaused : Boolean = false;
+    var EscMenu : Boolean = false;
+    var IsRestart : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.HowToPlay = this.Owner.FindChildByName("HowToPlayButton");
+        this.QuitGame = this.Owner.FindChildByName("QuitGameButton");
+        
+        //Connect UpdateEvent
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Display or Close Game Menu
+        this.UpdateGameMenu();
+        
+        //Allow escape button to trigger press when conditions met
+        if(this.IsGameLevel() && !this.HowToPlay.HowToPlayButtonLogic.IsHelpOn && !this.QuitGame.QuitGameButtonLogic.IsConfirmOn)
+            this.EscMenu = Zero.Keyboard.KeyIsPressed(Keys.Escape);
+    }
+    
+    //Function to display or close game menu based on escape button press
+    function UpdateGameMenu()
+    {
+        //Check if escape button pressed
+        if(this.EscMenu)
+        {
+            //Check if game menu is on/off
+            if(!this.Owner.Sprite.Visible)
+            {
+                //Display game menu
+                this.OnGameMenu(true);
+            }
+            else
+            {
+                //Close game menu
+                this.OnGameMenu(false);
+            }
+        }
+    }
+    
+    //Function to display or close game menu based on boolean parameter
+    function OnGameMenu(bool : Boolean)
+    {
+        //Set sprites visibility based on input boolean parameter
+        this.Owner.Sprite.Visible = bool;
+        this.Owner.FindChildByName("ResumeButton").Sprite.Visible = bool;
+        this.Owner.FindChildByName("HowToPlayButton").Sprite.Visible = bool;
+        this.Owner.FindChildByName("QuitGameButton").Sprite.Visible = bool;
+        this.Owner.FindChildByName("RestartButton").Sprite.Visible = bool;
+        this.Owner.FindChildByName("MenuText").Sprite.Visible = bool;
+        this.IsPaused = bool;
+        
+        //Pause or unpause the game
+        this.MainSpace.TimeSpace.TogglePause();
+    }
+    
+    //function to check if player is in a game level
+    function IsGameLevel() : Boolean
+    {
+        for(var i = 1; i < 5; ++i)
+        {
+            if(this.MainSpace.CurrentLevel.Name == "Level0`i`")
+                return true;
+        }
+        return false;
+    }
+}

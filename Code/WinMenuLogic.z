@@ -1,0 +1,48 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions which controls the win menu. Display win menu / Close win menu
+
+*/
+
+class WinMenuLogic : ZilchComponent
+{
+    //Boolean to check if player has won
+    var HasWon : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(this.Space, "UpdateWinMenu", this.OnUpdateWinMenu);
+    }
+    
+    //Event to update win menu
+    function OnUpdateWinMenu(event : Event)
+    {
+        //Check if win menu is on/off
+        if(!this.Owner.Sprite.Visible)                               
+        {
+            //Display Win menu
+            this.OnWinMenu(true);                                          
+        }
+        else
+        {            
+            //Close Win Menu
+            this.OnWinMenu(false);                                         
+        }
+    }
+    
+    //Function to display or close win menu based on boolean input parameter
+    function OnWinMenu(bool : Boolean)                                                   
+    {
+        this.Owner.Sprite.Visible = bool;
+        this.Owner.FindChildByName("NextLevelButton").Sprite.Visible = bool;
+        this.Owner.FindChildByName("WinText").Sprite.Visible = bool;
+        
+        //Set/Reset boolean for Player Has Won
+        this.HasWon = bool;
+    }
+}

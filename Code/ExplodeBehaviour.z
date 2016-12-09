@@ -1,0 +1,65 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+Code that was done: 100%
+
+*/
+
+class ExplodeBehaviour : ZilchComponent
+{
+    //Stores HUDScreen Space
+    var HUDSpace : Space = null;
+    
+    //A timer to store time
+    var Timer : Real;
+    
+    //Counter to check
+    var Counter : Integer;
+    
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        
+        //Assign HUDSpace into variable
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        
+        //Initializing variables
+        this.Timer = 0;
+        this.Counter = 1;
+    }
+
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Increasing the timer based on the time passed since last frame
+        this.Timer += event.Dt;
+        
+        //If the timer had went past the counter * multiplier
+        if(this.Timer > (0.2 * this.Counter))
+        {
+            //Change the current frame
+            this.Owner.Sprite.CurrentFrame = this.Counter - 1;
+            //Increase the counter
+            ++this.Counter;
+        }
+        
+        //When the counter reaches the last frame
+        if(this.Counter == 9)
+        {
+            //If it is, then show the lose screen
+            this.HUDSpace.FindObjectByName("LoseMenu").Sprite.Visible = true;
+            this.HUDSpace.FindObjectByName("LoseMenu").LoseScript.HasLost = true;
+            this.HUDSpace.FindObjectByName("LoseText").Sprite.Visible = true;
+            this.HUDSpace.FindObjectByName("ResetText").Sprite.Visible = true;
+            
+            //Destroy the object
+            this.Destruction();
+        }
+    }
+    
+    function Destruction()
+    {
+        //Destroy the object
+        this.Owner.Destroy();
+    }
+}

@@ -1,0 +1,269 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Richmond Goh
+
+Brief Description: Controls interaction of level selection menu
+*/
+
+class LevelSelectionMenuController : ZilchComponent
+{
+    [Property]
+    var FindTargetButtonBox:Archetype;
+    //Searching for button box archetype
+    
+    [Property]
+    var FindTargetButtonText:Archetype;
+    //Searching for button text archetype
+    
+    [Property]
+    var Level01SelectionBox:Archetype;
+    [Property]
+    var Level02SelectionBox:Archetype;
+    [Property]
+    var Level03SelectionBox:Archetype;
+    [Property]
+    var Level04SelectionBox:Archetype;
+    
+    
+    [Property]
+    var FindHelperText:Archetype;
+    //Searching for helper Text
+    
+    var BoxCreationArray : Array[Cog] = Array[Cog]();
+    var TextBoxHolderCreationArray : Array[Cog] = Array[Cog]();
+    var HelperText:Cog;
+    var GuiderText:Cog;
+    
+    var TextBoxCreationArray : Array[String] = Array[String]();
+    
+    var DefaultColor:Real4 = Real4(255.0/255,255.0/255,255.0/255,1);
+    var DefaultTextColor:Real4 = Real4(255.0/255,255.0/255,255.0/255,1);
+    var BlackColor:Real4 = Real4(0.0/255,0.0/255,0.0/255,1);
+    
+    //this variable is used to ensure all values folow this color scheme
+    var DefaultSelectedBoxTextColor:Real4 = Real4(255.0/255,130.0/255,0.0/255,1);
+    
+    var SelectedValue:Integer = 0;
+    
+    [Property]
+    var SoundEffect:SoundCue;
+    
+    /*
+        Property tabs created for levels so that level renaming would not cause much problems
+    */
+    
+    [Property]
+    var Level01:Level;
+    [Property]
+    var Level02:Level;
+    [Property]
+    var Level03:Level;
+    [Property]
+    var Level04:Level;
+    
+    var HUDSpace : Space;
+    
+    function Initialize(init : CogInitializer)
+    {
+        this.HelperText = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,8,0));
+        this.HelperText.Area.Size = Integer2(10,3);
+        this.HelperText.SpriteText.FontSize = 70;
+        this.HelperText.SpriteText.Color = this.BlackColor;
+        this.GuiderText = this.Space.CreateAtPosition(this.FindHelperText,Real3(0,0,0));
+        this.GuiderText.SpriteText.Color = this.BlackColor;
+        this.Create3Boxes();
+        //Function 1 = Create3Boxes
+        //Function 2 = CreateBoxText
+        //Function 3 = DefaultSelection
+        //Function 4 = ChangingText Color to Selection Color
+        //Function 5 = Changing Selection = Show Text Accordingly
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        Zero.Connect(Zero.Keyboard,Events.KeyDown,this.ChangingText);
+        //Create3Boxes function is executed first
+    }
+
+
+    /*
+        Function Create3Boxes creates 3 boxes and assigns them to array and gives them a transform value
+    */
+    function Create3Boxes()
+    {
+        
+        this.BoxCreationArray.Add(this.Space.CreateAtPosition(this.Level01SelectionBox,Real3(0,0,0)));
+        this.BoxCreationArray.Add(this.Space.CreateAtPosition(this.Level02SelectionBox,Real3(0,0,0)));
+        this.BoxCreationArray.Add(this.Space.CreateAtPosition(this.Level03SelectionBox,Real3(0,0,0)));
+        this.BoxCreationArray.Add(this.Space.CreateAtPosition(this.Level04SelectionBox,Real3(0,0,0)));
+        
+        for(var i = 0; i < 4; ++i)
+        {
+            this.BoxCreationArray[i].Area.Size = Integer2(4,2);
+            this.BoxCreationArray[i].Sprite.Color = this.DefaultColor;
+        }
+        
+        
+        this.BoxCreationArray[0].Transform.Translation = Real3(-10,5,0);
+        this.BoxCreationArray[1].Transform.Translation = Real3(-10,1.5,0);
+        this.BoxCreationArray[2].Transform.Translation = Real3(-10,-2,0);
+        
+        if(this.BoxCreationArray.Count > 2)
+        {
+            this.BoxCreationArray[3].Transform.Translation = Real3(0,5,0);
+        }
+        
+        
+        this.CreateBoxText();
+    }
+    
+    /*
+        Function CreateBoxText creates 3 text and assigns them to array and gives them a transform value
+    */    
+    
+    function CreateBoxText()
+    {
+        /*
+        this.TextBoxCreationArray.Add("Level 01");
+        this.TextBoxCreationArray.Add("Level 02");
+        this.TextBoxCreationArray.Add("Level 03");
+        this.TextBoxCreationArray.Add("Level 04");
+        
+        for(var i = 0; i < 4; ++i)
+        {
+            //Console.WriteLine(i);
+            this.TextBoxHolderCreationArray.Add(this.Space.CreateAtPosition(this.FindTargetButtonText,Real3(0,0,0)));
+            this.TextBoxHolderCreationArray[i].SpriteText.Color = this.DefaultTextColor;
+            this.TextBoxHolderCreationArray[i].SpriteText.Text = this.TextBoxCreationArray[i];
+            this.TextBoxHolderCreationArray[i].SpriteText.FontSize = 30;
+            this.TextBoxHolderCreationArray[i].Area.Size = Integer2(5,5);
+        }        
+            this.TextBoxHolderCreationArray[0].Transform.Translation = (this.BoxCreationArray[0].Transform.Translation + Real3(0,-2,0));
+            this.TextBoxHolderCreationArray[1].Transform.Translation = (this.BoxCreationArray[1].Transform.Translation + Real3(0,-2,0));
+            this.TextBoxHolderCreationArray[2].Transform.Translation = (this.BoxCreationArray[2].Transform.Translation + Real3(0,-2,0));
+            
+            if(this.TextBoxCreationArray.Count > 2)
+            {
+                this.TextBoxHolderCreationArray[3].Transform.Translation = (this.BoxCreationArray[3].Transform.Translation + Real3(0,-2,0));
+            }
+            
+          */
+            this.DefaultSelection();   
+            
+    }
+    
+    /*
+        DefaultSelection function is used to create and update BoxCreationArray followed by which UpdateText Function will run.
+    */
+    
+    function DefaultSelection()
+    {
+        if(this.SelectedValue < this.BoxCreationArray.Count)
+        {
+            for(var i = 0; i < 4; ++i)
+            {
+                this.BoxCreationArray[i].Sprite.Color = this.DefaultColor;
+            }
+
+            this.BoxCreationArray[this.SelectedValue].Sprite.Color = this.DefaultSelectedBoxTextColor;             
+        }
+        this.UpdateText();
+    }
+    
+    /*
+        Keyboard Function helps to ensure that users currently know which buttons is being pressed
+    */
+    
+    function ChangingText(event:KeyboardEvent)
+    {
+        
+        this.Space.SoundSpace.PlayCue(this.SoundEffect);
+        
+        if(event.Key == Keys.Down || event.Key == Keys.S)
+        {
+            if( this.SelectedValue < this.BoxCreationArray.Count-1)
+            {
+                this.SelectedValue +=1;
+                this.DefaultSelection();
+            }
+        }
+        
+        if(event.Key == Keys.Up || event.Key == Keys.W)
+        {
+            if(this.SelectedValue > 0)
+            {
+                this.SelectedValue -=1;
+                this.DefaultSelection();                
+            }
+        }
+        
+        if(event.Key == Keys.Back)
+        {
+            this.Space.LoadLevel(Level.Find("StartScreen01"));
+        }
+        
+        if(event.Key == Keys.Right || event.Key == Keys.D)
+        {
+            this.SelectedValue = 3;
+            this.DefaultSelection();
+        }
+        
+        if(event.Key == Keys.Left || event.Key == Keys.A)
+        {
+            if(this.SelectedValue == 3)
+            {
+                this.SelectedValue = 0;
+                this.DefaultSelection();
+            }
+        }
+        
+        if(event.Key == Keys.Enter)
+        {
+            this.HUDSpace.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(false);
+            if(this.SelectedValue == 0)
+            {
+                this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(false);
+                this.Space.LoadLevel(this.Level01);
+            }
+            
+            else if(this.SelectedValue == 1)
+            {
+                Zero.Mouse.Trapped = false;
+                Zero.Mouse.Cursor = Cursor.Arrow;
+                this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(false);
+                this.Space.LoadLevel(this.Level02);
+            }
+            
+            else if(this.SelectedValue == 2)
+            {
+                Zero.Mouse.Trapped = false;
+                Zero.Mouse.Cursor = Cursor.Arrow;
+                if(!this.HUDSpace.FindObjectByName("InventoryMenu").Sprite.Visible)
+                    this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(true);
+                this.Space.LoadLevel(this.Level03);
+            }
+            
+            else if(this.SelectedValue == 3)
+            {
+                Zero.Mouse.Trapped = false;
+                Zero.Mouse.Cursor = Cursor.Arrow;
+                if(!this.HUDSpace.FindObjectByName("InventoryMenu").Sprite.Visible)
+                    this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(true);
+                this.Space.LoadLevel(this.Level04);
+            }
+            
+        }
+        
+    }
+    /*
+        UpdateText help to create update text by code
+        GuiderText is meant to inform users of ways to proceed or back out from the screen
+    */
+    function UpdateText()
+    {
+        this.HelperText.SpriteText.Text = "Level Selection";
+        this.GuiderText.SpriteText.Text = "Press Back to return to main menu, Enter to Proceed";
+        this.GuiderText.Transform.Translation = Real3(0,-9,0);
+        this.GuiderText.Area.Size = Integer2(20,5);
+    }
+
+
+}

@@ -1,0 +1,482 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Controls the player. Affects what the player can do
+*/
+
+//This script is used for the controlling of the palyer
+class PlayerController : ZilchComponent
+{
+    //Button to move left
+    var MoveLeft : Boolean = false;
+    
+    //Button to move right
+    var MoveRight : Boolean = false;
+    
+    //Button to jump
+    var Jump : Boolean = false;
+    
+    //Providing a changable variable in the editor for boosting the jump of the character
+    [Property]
+    var JumpBoost : Real;
+    
+    //Array to store inputs
+    var ArrayInputs : Array[Integer];
+    
+    //Array to store the timings for the inputs
+    var ArrayTimer : Array[Real];
+    
+    //Which position is the pointer at for the array
+    var ArrayFront : Integer;
+    
+    //Time since last input
+    var Timer : Real = 0.0;
+    
+    //Start of recording
+    var RecStart : Boolean = false; 
+    
+    //Check to see if touching jumpable object
+    var Jumpable : Boolean = true;
+    
+    //Check to see if the player is touching the ramp
+    var OnRamp : Boolean = true;
+    
+    var Explode : Cog;
+    
+    var HasDied : Boolean = false;
+    
+    //The Player's starting position
+    [Property]
+    var StartPos : Real3 = Real3(); 
+    
+    //Stores the LevelSettings object
+    var LevelSetting : Cog;
+    
+    //Stores items
+    var Inventory : Array[Integer];
+    
+    //Stores HUD Space
+    var HUDSpace : Space;
+    
+    //Stores the explosion sound
+    [Property]
+    var ExplosionSound:SoundCue;
+    
+    //This function is only run once at the start to initialize variables used in this script
+    function Initialize(init : CogInitializer)
+    {
+        //Telling zero that OnLogicUpdate is run constantly
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        
+        //Telling zero that OnCollision is called when the event for collisionstarted occurs
+        Zero.Connect(this.Owner, Events.CollisionStarted, this.OnCollision);
+        
+        //Setting the object LevelSetting to the one found in the space
+        this.LevelSetting = this.Space.FindObjectByName("LevelSettings");
+        
+        //Create Inventory array
+        this.Inventory = new Array[Integer]();
+        
+        //Setting the HUDSpace to the one that was found to store it
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        
+        //A check to see if the current level is either "Level01" or "Level02"
+        //if it is either, then it will not enter
+        if(this.Space.CurrentLevel.Name != "Level01" && this.Space.CurrentLevel.Name != "Level02")
+        {
+            //initializing item and store in array
+            this.Inventory.Add(1);
+            this.Inventory.Add(2);
+            
+            //Initialize item at Inventory Menu
+            this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.InitItem();
+        }
+        
+        //Initializing arrays for arrayinputs
+        this.ArrayInputs = new Array[Integer]();
+        
+        //Initializing arrays for arraytimer
+        this.ArrayTimer = new Array[Real]();
+        
+        //Initializing arraysfront which acts like a pointer
+        this.ArrayFront = 0;
+        
+        //Initializing the boolean jumpable which determines if the player is able to jump to true
+        this.Jumpable = true;
+        
+        //Initializing the boolean onRamp which determins if the player is currently touching the ramp to false
+        this.OnRamp = false;
+    }
+
+    //This function is constantly called
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //The timer increases by the amount of time past since last frame every frame
+        this.Timer += event.Dt;
+    }
+    
+    //This function is used to determine the inputs by the player and stored into booleans
+    function UpdatePlayerInput()
+    {
+        //If A is pressed, MoveLeft is set to true
+        this.MoveLeft = Zero.Keyboard.KeyIsDown(Keys.A);
+        
+        //If D is pressed, MoveRight is set to true
+        this.MoveRight = Zero.Keyboard.KeyIsDown(Keys.D);
+        
+        //If W is pressed, Jump is set to true
+        this.Jump = Zero.Keyboard.KeyIsPressed(Keys.W);
+    }
+    
+    //This function records the movements that are given
+    function RecordMovement(event: UpdateEvent)
+    {
+        //Checking for the last input, at the capacity
+        if(this.LevelSetting.GameStateController.InputUsed + this.LevelSetting.GameStateController.InputUsing == 10)
+        {
+            //Check to see if the last value in the array is the same as the input
+            //If the input is different, then remove it and jump out of the function
+            //The check for left
+            if(this.ArrayInputs[this.ArrayInputs.LastIndex] == 1 && !this.MoveLeft)
+            {
+                //Remove the last input in arrayinput
+                this.ArrayInputs.Pop();
+                
+                //Remove the last input in arraytimer
+                this.ArrayTimer.Pop();
+                
+                //Increae the value of inputusing by 1
+                ++this.LevelSetting.GameStateController.InputUsing;
+                
+                //escape the function
+                return;
+            }
+            //The check for right
+            else if(this.ArrayInputs[this.ArrayInputs.LastIndex] == 2 && !this.MoveRight)
+            {
+                //Remove the last input in arrayinput
+                this.ArrayInputs.Pop();
+                
+                //Remove the last input in arraytimer
+                this.ArrayTimer.Pop();
+                
+                //Increae the value of inputusing by 1
+                ++this.LevelSetting.GameStateController.InputUsing;
+                
+                //escape the function
+                return;
+            }
+            //The check for jump
+            else if(this.ArrayInputs[this.ArrayInputs.LastIndex] == 3 && !this.Jump)
+            {
+                //Remove the last input in arrayinput
+                this.ArrayInputs.Pop();
+                
+                //Remove the last input in arraytimer
+                this.ArrayTimer.Pop();
+                
+                //Increae the value of inputusing by 1
+                ++this.LevelSetting.GameStateController.InputUsing;
+                
+                //escape the function
+                return;
+            }
+        }
+        
+        //When it is asked to start recording
+        if(this.RecStart)
+        {
+            //first reset everything by calling the reset function in this script
+            this.Reset();
+        }
+        
+        //Check for the inputs that was given
+        //If moveleft is true
+        if(this.MoveLeft)
+        {
+            //Number for move left will be added to the arrayinput
+            this.ArrayInputs.Add(1);
+            
+            //the timer will be added to the arraytimer
+            this.ArrayTimer.Add(this.Timer);
+            
+            //Telling the array to merge the inputs and timer
+            this.LevelSetting.GameStateController.ArrayMerge = true;
+            
+            //Setting the timer back to 0
+            this.Timer = 0;
+            //Console.WriteLine("Record Left");
+        }
+        else if(this.MoveRight)
+        {
+            //Number for move right
+            this.ArrayInputs.Add(2);
+            
+            //the timer will be added to the arraytimer
+            this.ArrayTimer.Add(this.Timer);
+            
+            //Telling the array to merge the inputs and timer
+            this.LevelSetting.GameStateController.ArrayMerge = true;
+            
+            //Setting the timer back to 0
+            this.Timer = 0;
+            //Console.WriteLine("Record Right");
+        }
+        
+        if(this.Jump)
+        {
+            //Number for move jump
+            this.ArrayInputs.Add(3);
+            
+            //the timer will be added to the arraytimer
+            this.ArrayTimer.Add(this.Timer);
+            
+            //Telling the array to merge the inputs and timer
+            this.LevelSetting.GameStateController.ArrayMerge = true;
+            
+            //Setting the timer back to 0
+            this.Timer = 0;
+            //Console.WriteLine("Record Jump");
+        }
+    }
+    
+    //This function applys the movements that was recorded earlier
+    function ApplyMovement(event: UpdateEvent)
+    {
+        //Check to see if there is an input by determining if the total amount of input in the arrayinput
+        //Is larger than the arrayfront, which acts as the pointer
+        if(this.ArrayInputs.Count > this.ArrayFront)
+        {
+            //Check to see if the input within the array is 1, which is the value for moving left
+            if(this.ArrayInputs[this.ArrayFront] == 1)
+            {
+                //If the amount of velocity that the player has is >= -10
+                if(this.Owner.RigidBody.Velocity.X >= -10)
+                {
+                    //Check to see if it is on the ramp
+                    if(this.OnRamp)
+                    {
+                        //If it is on the ramp, give it a boost
+                        this.Owner.RigidBody.ApplyLinearVelocity(Real3(-10, 5, 0));
+                        
+                        //Before setting the onramp boolean check to false
+                        this.OnRamp = false;
+                        
+                        //Console.WriteLine("RampBoost");
+                    }
+                    //If the player can jump, meaning that is on the ground
+                    if(this.Jumpable)
+                    {
+                        //Allow the player to move by changing the velocity of the player
+                        //Moving left
+                        this.Owner.RigidBody.Velocity += Real3(-1, 0, 0);
+                        
+                        //Console.WriteLine("Move Left");
+                        
+                        //Increase the "pointer" value by 1
+                        this.ArrayFront += 1;
+                    }
+                }
+            }
+            //Check to see if the input within the array is 2, which is the value for moving right
+            else if(this.ArrayInputs[this.ArrayFront] == 2)
+            {
+                //If the amount of velocity that the player has is <= 10
+                if(this.Owner.RigidBody.Velocity.X <= 10)
+                {
+                    //Check to see if it is on the ramp
+                    if(this.OnRamp)
+                    {
+                        //If it is on the ramp, give it a boost
+                        this.Owner.RigidBody.ApplyLinearVelocity(Real3(10, 5, 0));
+                        
+                        //Before setting the onramp boolean check to false
+                        this.OnRamp = false;
+                        
+                        //Console.WriteLine("RampBoost");
+                    }
+                    //If the player can jump, meaning that is on the ground
+                    if(this.Jumpable)
+                    {
+                        //Allow the player to move by changing the velocity of the player
+                        //Moving right
+                        this.Owner.RigidBody.Velocity += Real3(1, 0, 0);
+                        
+                        //Console.WriteLine("Move Right");
+                        
+                        //Increase the "pointer" value by 1
+                        this.ArrayFront += 1;
+                    }
+                }
+            }
+            //Check to see if the input within the array is 3, which is the value for moving right
+            else if(this.ArrayInputs[this.ArrayFront] == 3)
+            {
+                //If the player is supposed to be able to jump
+                if(this.Jumpable)
+                {
+                    //Make the player jump
+                    this.Owner.RigidBody.ApplyLinearVelocity(Real3(0, 10, 0));
+                    
+                    //Console.WriteLine("Jump");
+                    
+                    //Resetting Jumpable to false
+                    this.Jumpable = false;
+                    
+                    //Increase the "pointer" value by 1
+                    this.ArrayFront += 1;
+                }
+            }
+            //If the player cannot jump, i.e. in midair
+            if(!this.Jumpable)
+            {
+                //If it is moving right but slower than 15
+                if(this.Owner.RigidBody.Velocity.X < 15 && this.Owner.RigidBody.Velocity.X > 0)
+                {
+                    //Give it a boost to ensure that it continues moving right
+                    this.Owner.RigidBody.ApplyLinearVelocity(Real3(this.JumpBoost, 0, 0));
+                    
+                    //this.Owner.RigidBody.ApplyForce(Real3(this.JumpBoost, 0, 0));
+                }
+                //Otherwise if it was moving left
+                else if(this.Owner.RigidBody.Velocity.X > -15 && this.Owner.RigidBody.Velocity.X < 0)
+                {
+                    //Give the boost left-ward instead
+                    this.Owner.RigidBody.ApplyLinearVelocity(Real3(-this.JumpBoost, 0, 0));
+                }
+            }
+        }
+        //else if it had completed the array
+        else
+        {
+            //and can jump, is on ground
+            if(this.Jumpable)
+            {
+                //Check the x and y velocity of the player
+                //If it is within -0.5 to 0.5 range, then enter the if statement
+                if(this.Owner.RigidBody.Velocity.X < 0.5 && this.Owner.RigidBody.Velocity.X > -0.5 &&
+                    this.Owner.RigidBody.Velocity.Y < 0.5 && this.Owner.RigidBody.Velocity.Y > -0.5)
+                {
+                    //Acts as if the player had stopped, and fail the level
+                    //By calling out the reset function
+                    //this.Died();
+                    
+                    //If it is, then show the lose screen
+                    if(!this.HasDied)
+                    {
+                        //Switch on the lose screen
+                        this.HUDSpace.FindObjectByName("LoseMenu").Sprite.Visible = true;
+                        this.HUDSpace.FindObjectByName("LoseMenu").LoseScript.HasLost = true;
+                        this.HUDSpace.FindObjectByName("LoseText").Sprite.Visible = true;
+                        this.HUDSpace.FindObjectByName("ResetText").Sprite.Visible = true;
+                        
+                        //Make player invisible
+                        this.Owner.Sprite.Visible = false;
+                    }
+                }
+            }
+            //Otherwise, if it cannot jump, is in air
+            else if(!this.Jumpable)
+            { 
+                //Check to see if it is moving right in the air and is slower than 15
+                if(this.Owner.RigidBody.Velocity.X < 15 && this.Owner.RigidBody.Velocity.X > 0)
+                {
+                    //Give it a boost to reduce the amount of velocity that is being reduced
+                    this.Owner.RigidBody.ApplyLinearVelocity(Real3(this.JumpBoost, 0, 0));
+                }
+                //Check to see if it is moving left in the air and is slower than 15
+                else if(this.Owner.RigidBody.Velocity.X > -15 && this.Owner.RigidBody.Velocity.X < 0)
+                {
+                    //Give it a boost to reduce the amount of velocity that is being reduced
+                    this.Owner.RigidBody.ApplyLinearVelocity(Real3(-this.JumpBoost, 0, 0));
+                }
+            }
+        }
+    }
+    
+    //This function runs when there is a collision with another object
+    function OnCollision(event: CollisionEvent)
+    {
+        //Checks to see if the other object that the player is colliding with is either "Lava", "Water", or "Spike"
+        //Enter the statement if it is any of the 3 above
+        if(event.OtherObject.ArchetypeName == "Lava" || event.OtherObject.ArchetypeName == "Water" || event.OtherObject.ArchetypeName == "Spike")
+        {
+            //If the player touches any of these 3 types of object, the player fails and the level resets
+            this.Died();
+        }
+        //Otherwise, if the object happens to be a ramp instead
+        else if(event.OtherObject.ArchetypeName == "Ramp")
+        {
+            //Tell the player that he is touching a ramp
+            this.OnRamp = true;
+        }
+    }
+    
+    function Died()
+    {
+        //Making sure this only run once
+        if(!this.HasDied)
+        {
+            //Set the player to invisible
+            this.Owner.Sprite.Visible = false;
+            
+            //Create the explosion
+            this.Explode = this.Space.CreateAtPosition(Archetype.Find("Explode"), this.Owner.Transform.Translation - Real3(0, 1, 0));
+            
+            //Play explosion sound
+            this.Space.SoundSpace.PlayCue(this.ExplosionSound);
+            
+            //Making the boolean to true;
+            this.HasDied = true;
+        }
+    }
+    
+    //This functions resets the variables in this script
+    function Reset()
+    {
+        //Console.WriteLine("`this.ArrayFront`");
+        //Console.WriteLine("Resetting PlayerController");
+        
+        //Reset the timer to 0
+        this.Timer = 0;
+        
+        //Console.WriteLine("Timer reset", this.Timer);
+        
+        //Reset the "pointer" to 0
+        this.ArrayFront = 0;
+        
+        //Console.WriteLine("ArrayFront reset", this.ArrayFront);
+        
+        //While the array is not empty
+        while(this.ArrayInputs.Count != 0)
+        {
+            //Removing the variables in arraysinput
+            this.ArrayInputs.Pop();
+            //Removing the variables in arraytimer
+            this.ArrayTimer.Pop();
+        }
+        
+        //Console.WriteLine("ArrayInput and ArrayTimer reset");
+        
+        //Reset the recStart boolean to false
+        this.RecStart = false;
+        
+        //Reset the jumpable boolean for the player to true
+        this.Jumpable = true;
+        
+        //Reset the onRamp boolean to false
+        this.OnRamp = false;
+        
+        //Teleport the player back to starting position
+        this.Owner.Transform.Translation = this.StartPos;
+        
+        this.Owner.Sprite.Visible = true;
+        
+        if(this.Explode != null)
+        {
+            this.Explode.ExplodeBehaviour.Destruction();
+        }
+    }
+}

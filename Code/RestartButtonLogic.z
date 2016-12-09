@@ -1,0 +1,118 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the Restart button does when clicked. Reset the game level
+
+*/
+
+class RestartButtonLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Variable to store quit game button cog
+    var QuitGame : Cog = null;
+    
+    //Stores Default & Hover Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.QuitGame = this.Space.FindObjectByName("QuitGameButton");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+        Zero.Connect(this.Space, Events.MouseUp, this.OnMouseUp);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click if quit game confirmation is not displayed
+        if(!this.QuitGame.QuitGameButtonLogic.IsConfirmOn)
+            this.ClickedState();
+    }
+
+    function OnMouseUp(event : ViewportMouseEvent)
+    {
+        //Set IsRestart boolean to false after clicking
+        this.Space.FindObjectByName("GameMenu").GameMenuLogic.IsRestart = false;
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Set boolean HasEntered in door script to false
+        this.MainSpace.FindObjectByName("Door").DoorScript.HasEntered = false;
+        
+        //Reset game state
+        this.MainSpace.FindObjectByName("LevelSettings").GameStateController.Reset();
+        
+        //Close lose menu
+        this.Space.FindObjectByName("LoseMenu").Sprite.Visible = false;
+        this.Space.FindObjectByName("LoseMenu").LoseScript.HasLost = false;
+        this.Space.FindObjectByName("LoseText").Sprite.Visible = false;
+        this.Space.FindObjectByName("ResetText").Sprite.Visible = false;
+        
+        //Set boolean IsRestart to true
+        this.Space.FindObjectByName("GameMenu").GameMenuLogic.IsRestart = true;
+        
+        //Destroy event text created
+        //this.LevelSettings.DispatchEvent(Events.DestroyText,ZilchEvent());
+        
+        //Destroy all items created
+        this.Space.FindObjectByName("InventoryMenu").InventoryLogic.DestroyItem();
+        
+        //Close game menu
+        this.Space.FindObjectByName("GameMenu").GameMenuLogic.OnGameMenu(false);
+        
+        //Close timer display
+        this.Space.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(false);
+        
+        //Close win menu and reset win boolean
+        if(this.Space.FindObjectByName("WinMenu").WinMenuLogic.HasWon)
+        {
+            var myEvent = ZilchEvent();
+            this.Space.DispatchEvent("UpdateWinMenu", myEvent);
+            this.Space.FindObjectByName("WinMenu").WinMenuLogic.HasWon = false;
+        }
+        
+        //Re-initialize item
+        if(this.MainSpace.CurrentLevel.Name != "Level01" && this.MainSpace.CurrentLevel.Name != "Level02")
+            this.Space.FindObjectByName("InventoryMenu").InventoryLogic.InitItem();
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hovered sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+}

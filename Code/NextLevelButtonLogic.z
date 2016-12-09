@@ -1,0 +1,92 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the next level button does when clicked. Loads the next level.
+
+*/
+
+class NextLevelButtonLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Default and Hovered Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click 
+        this.ClickedState();
+    }
+    
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Close Win Menu
+        var myEvent = ZilchEvent();
+        this.Space.DispatchEvent("UpdateWinMenu", myEvent);
+        
+         //Destroy all items created
+        this.Space.FindObjectByName("InventoryMenu").InventoryLogic.DestroyItem();
+        
+        //Load next level
+        this.MainSpace.LoadLevel(this.MainSpace.FindObjectByName("Door").DoorScript.NextLevel);
+        
+        //Close timer display
+        this.Space.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(false);
+        
+        //If level is not level 02
+        if(this.MainSpace.FindObjectByName("Door").DoorScript.NextLevel.Name != "Level02")
+        {
+            //Display inventory menu
+            Console.WriteLine("`this.MainSpace.CurrentLevel.Name`");
+            if(!this.Space.FindObjectByName("InventoryMenu").Sprite.Visible)
+            {
+                Console.WriteLine("this.MainSpace.CurrentLevel.Name");
+                this.Space.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(true);
+            }
+        }
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hovered sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+}

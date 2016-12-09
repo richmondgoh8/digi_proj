@@ -1,0 +1,106 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the Yes button does when clicked. Quit the game and bring the player
+        back to start screen.
+
+*/
+
+class YesButtonLogic : ZilchComponent
+{
+    //Variable to store StartScreen level
+    var StartLevel : Level = Level.Find("StartScreen01");
+    
+    //Store Main Space
+    var MainSpace : Space = null;
+    
+    //Stores Default & Hover Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click
+        this.ClickedState();
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Reset game state
+        this.MainSpace.FindObjectByName("LevelSettings").GameStateController.Reset();
+        
+        //Close Lose Menu
+        this.Space.FindObjectByName("LoseMenu").Sprite.Visible = false;
+        this.Space.FindObjectByName("LoseMenu").LoseScript.HasLost = false;
+        this.Space.FindObjectByName("LoseText").Sprite.Visible = false;
+        this.Space.FindObjectByName("ResetText").Sprite.Visible = false;
+        
+        //Destroy event text created
+        //this.LevelSettings.DispatchEvent(Events.DestroyText,ZilchEvent());
+        
+        //Destroy all items created
+        this.Space.FindObjectByName("InventoryMenu").InventoryLogic.DestroyItem();
+        
+        //Close quit game confirmation menu
+        this.Space.FindObjectByName("QuitGameButton").QuitGameButtonLogic.DisplayConfirmation(false);
+        
+        //Close game menu
+        this.Space.FindObjectByName("GameMenu").GameMenuLogic.OnGameMenu(false);
+        
+        //Close timer display
+        this.Space.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(false);
+        
+        //Close win menu and reset win boolean
+        if(this.Space.FindObjectByName("WinMenu").WinMenuLogic.HasWon)
+        {
+            var myEvent = ZilchEvent();
+            this.Space.DispatchEvent("UpdateWinMenu", myEvent);
+            this.Space.FindObjectByName("WinMenu").WinMenuLogic.HasWon = false;
+        }
+        
+        //Load start screen level
+        this.MainSpace.LoadLevel(this.StartLevel);
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hovered sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+}
