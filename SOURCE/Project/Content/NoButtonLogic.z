@@ -1,0 +1,70 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the No button does when clicked. Closes the quit confirmation menu.
+
+*/
+
+class NoButtonLogic : ZilchComponent
+{
+    //Stores Default & Hover Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    //Store quit game button cog
+    var QuitGameButton : Cog = null;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.QuitGameButton = this.Space.FindObjectByName("QuitGameButton");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click
+        this.ClickedState();
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Close quit confirmation menu
+        this.QuitGameButton.QuitGameButtonLogic.DisplayConfirmation(false);
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hovered sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+}

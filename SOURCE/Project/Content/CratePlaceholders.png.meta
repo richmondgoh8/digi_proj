@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "CratePlaceholders",
+		uint64 ResourceId = 58ed173c567a779d,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 94,
+		uint FrameSizeY = 94,
+		uint FrameCount = 1,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 47,
+		float OriginY = 47,
+		float PixelsPerUnit = 50,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

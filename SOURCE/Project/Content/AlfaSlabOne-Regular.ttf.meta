@@ -1,0 +1,8 @@
+FontContent = 
+{
+	FontBuilder = 
+	{
+		string Name = "AlfaSlabOne-Regular",
+		uint64 ResourceId = 585550d4eed9ddd2,
+	},
+},

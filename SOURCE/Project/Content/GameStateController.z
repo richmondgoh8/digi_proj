@@ -1,0 +1,303 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Controls the game states and affect the whole game
+*/
+
+//Set numbers to the states
+enum States { DefaultState = 0, PlanState = 1, RecordState = 2, ExecuteState = 3 }  
+
+//This script controls the game states
+class GameStateController : ZilchComponent
+{
+    //A value for setting and changing the game state
+    var GameState : Integer = 1;
+    
+    //Button to start record
+    var Record : Boolean = false;
+    
+    //Button to open/close game menu
+    var EscMenu : Boolean = false;
+    
+    //Array to store inputs
+    var ArrayIn : Array[Integer];
+    
+    //Array to store the timings for the inputs
+    var ArrayTime : Array[Real];
+    
+    //Which position is the pointer at for the array
+    var ArrayStart : Integer;
+    
+    //Are there same inputs?
+    var ArrayMerge : Boolean;
+    
+   //The number of inputs that is being used
+    var InputUsing : Integer; 
+    
+    //The sume of all the inputs from the previous arrays
+    var InputUsed : Integer;
+    
+    //Stores cog of player
+    var Player : Cog = null;
+    
+    //Stores HUDScreen Space
+    var HUDSpace : Space = null;
+    
+    //Stores cog of game menu in HUDSpace
+    var GameMenu : Cog = null;
+    
+    
+    //The function that runs once at the start
+    function Initialize(init : CogInitializer)
+    {
+        //Initializing and telling zero that the OnLogicUpdate function will be running constantly
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        
+        //Grabbing the object for player and keeping it here
+        this.Player = this.Space.FindObjectByName("Player");
+        
+        //Assign HUDSpace into variable
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        
+        //Initializing array for the inputs that was recorded
+        this.ArrayIn = new Array[Integer](10);
+        
+        //Initializing array for the timing that each of the inputs were entered
+        this.ArrayTime = new Array[Real](10);
+        
+        //Initializing the location of the pointer in the array
+        this.ArrayStart = 0;
+        
+        //Initializing the boolean value that is used to tell the other script on when to merge the arrays
+        this.ArrayMerge = false;
+        
+        //Initializing the value of the current number of inputs within the recording
+        this.InputUsing = 0;
+        
+        //Initializing the value of the inputs that was used during the last recording
+        this.InputUsed = 0;
+    }
+    
+
+    //The function that runs constantly
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //When the game state is at the planning state
+        if(this.GameState == States.PlanState)
+        {
+            //Set player dynamic state to kinematic to prevent interactions.
+            this.Player.RigidBody.Kinematic = true;
+            
+            //Switch off the movement display
+            this.HUDSpace.FindObjectByName("MovementMenu").MovementDisplay.Displaying = false;
+            
+            //If the current level is not the starting two levels
+            if(this.Space.CurrentLevel.Name != "Level01" && this.Space.CurrentLevel.Name != "Level02")
+            {
+                //Make it such that the inventory cannot be seen during these two levels
+                this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(true);
+            }
+            
+            //While the inputused value is at it's default
+            if(this.InputUsed == 0)
+            {
+                //Check to see if the array is empty or that the pointer is not pointing towards the start
+                if(this.ArrayIn.Count == 0 || this.ArrayStart != 0)
+                {
+                    //When the arraystart variable is more than or equals to zero
+                    //It will enter the loop and perform the statements
+                    //Before it reduces arraystart by 1 and checking again
+                    //for if the condition still matches
+                    for(this.ArrayStart = 9; this.ArrayStart >= 0; --this.ArrayStart)
+                    {
+                        //Add in a value of 0 into the array arrayin
+                        this.ArrayIn.Add(0);
+                        
+                        //Add in a value of 0 into the array arraytime
+                        this.ArrayTime.Add(0);
+                    }
+                }
+                
+                //Resetting arraystart to 0
+                this.ArrayStart = 0;
+            }
+            
+            //Add the number of inputs that used used from last execute into the InputUsed variable
+            this.InputUsed += this.InputUsing;
+            
+            //Set the start of array to the number of inputs used, so it does not overwrite the previous result
+            this.ArrayStart = this.InputUsed;
+            
+            //Then set the InputUsing variable to 0 so it does not add multiple times
+            this.InputUsing = 0;
+        }
+        //Otherwise if the game state is in record state instead
+        else if(this.GameState == States.RecordState)
+        {
+            //Execute the movements stored
+            this.Player.PlayerController.UpdatePlayerInput();
+            
+            //Making sure that the number of stored inputs is only 10
+            //Yet making sure that the 10th input can still be merged with the same input
+            if(this.InputUsed + this.InputUsing < 11)
+            {
+                //Recording movement
+                this.Player.PlayerController.RecordMovement(event);
+            }
+            
+            //Switch on the movement display
+            this.HUDSpace.FindObjectByName("MovementMenu").MovementDisplay.Displaying = true;
+            
+            //Switch on the inventory
+            this.HUDSpace.FindObjectByName("InventoryMenu").InventoryLogic.RevealHideItem(false);
+            
+            //If it was called to merge the array
+            if(this.ArrayMerge)
+            {
+                //First time the array is being run/first time after the array have been reset
+                if(this.ArrayStart == 0)
+                {
+                    //Making sure that the array does not take in delay as a movement/jump
+                    if(this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex] != -1)
+                    {
+                        //Copying first input into arrayin
+                        this.ArrayIn[this.ArrayStart] = 
+                            this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex];
+                            
+                        //Same for the arraytime
+                        this.ArrayTime[this.ArrayStart] = 
+                            this.Player.PlayerController.ArrayTimer[this.Player.PlayerController.ArrayTimer.LastIndex];
+                            
+                        //Increase the value of arraystart so that it can act as a pointer for the array
+                        ++this.ArrayStart;
+                        
+                        //Increase the value of inputusing so that we know that 1 slot have been used
+                        ++this.InputUsing;
+                    }
+                }
+                //When array element is between 2nd and 10th
+                else if(this.ArrayStart < 10)
+                {
+                    //Making sure that the array does not take in delay as a movement/jump
+                    if(this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex] != -1)
+                    {
+                        //When the last value in the arrayinput is not the same as that of the last value in arrayin
+                        //don't merge the two values
+                        if(this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex] 
+                        != this.ArrayIn[this.ArrayStart - 1])
+                        {
+                            //Copying the other inputs into the array
+                            this.ArrayIn[this.ArrayStart] = 
+                            this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex];
+                            
+                            //Doing the same for the time array
+                            this.ArrayTime[this.ArrayStart] += 
+                            this.Player.PlayerController.ArrayTimer[this.Player.PlayerController.ArrayTimer.LastIndex];
+                            
+                            //Increase the value of arraystart so that it can act as a pointer for the array
+                            ++this.ArrayStart;
+                        
+                            //Increase the value of inputusing so that we know that 1 slot have been used
+                            ++this.InputUsing;
+                            
+                            //Getting out of the statement
+                            this.ArrayMerge = false;
+                        }
+                        //When the values are the same
+                        else
+                        {
+                            //Merging the inputs if they are the same
+                            this.ArrayTime[this.ArrayStart - 1] += 
+                                this.Player.PlayerController.ArrayTimer[this.Player.PlayerController.ArrayTimer.LastIndex];
+                            
+                            //Getting out of the statement
+                            this.ArrayMerge = false;
+                        }
+                    }
+                }
+                //Restrict to only merging, no more additional inputs
+                else
+                {
+                    //Checking to see that the last input of both arrays are the same
+                    if(this.Player.PlayerController.ArrayInputs[this.Player.PlayerController.ArrayInputs.LastIndex] 
+                    != this.ArrayIn[this.ArrayStart - 1])
+                    {
+                        //Merging the last input only
+                        this.ArrayTime[9] = this.ArrayTime[9] + 
+                            this.Player.PlayerController.ArrayTimer[this.Player.PlayerController.ArrayTimer.LastIndex];
+                    }
+                    
+                    //Getting out of the statement
+                    this.ArrayMerge = false;
+                }
+            }
+        }
+        //When the game state is in execute state
+        else if(this.GameState == States.ExecuteState)
+        {
+            //Making sure that the camera has zoomed back to the player before playing the movements
+            if(this.Space.FindObjectByName("Camera").CameraMovement.CameraReach)
+            {
+                //Setting state back to dynamic to enable interactions
+                this.Player.RigidBody.Kinematic = false;
+                
+                //Running the function for applying of movements
+                this.Player.PlayerController.ApplyMovement(event);              //Playing movements
+            }
+        }
+    }
+    
+    //This function helps to reset the level
+    function Reset()
+    {
+        //Console.WriteLine("Resetting GameStateController");
+        
+        //Resetting things in other scripts
+        //First reset the variables in the player controller
+        this.Player.PlayerController.Reset();
+        
+        //Then reset the variables in the movement display script
+        this.HUDSpace.FindObjectByName("MovementMenu").MovementDisplay.Reset();
+        
+        //Resetting things in GameStateController itself
+        //While the array is not empty
+        while(this.ArrayIn.Count != 0)
+        {
+            //Removen the last value in the array of arrayin
+            this.ArrayIn.Pop();
+            
+            //Removen the last value in the array of arraytime
+            this.ArrayTime.Pop();
+        }
+        
+        //Reinitializing arrayin
+        this.ArrayIn = new Array[Integer](10);
+        
+        //Reinitializing arraytime
+        this.ArrayTime = new Array[Real](10);
+        
+        //Resetting other variables
+        //Resetting array start to 0
+        this.ArrayStart = 0;
+        
+        //Resetting array merge boolean to false
+        this.ArrayMerge = false;
+        
+        //Resetting the num of inputs that is being used to 0
+        this.InputUsing = 0;
+        
+        //Resetting the num of inputs that was used to 0
+        this.InputUsed = 0;
+        
+        //Resetting the game state
+        this.GameState = 1;
+        
+        //Resetting the HUDSpace record button to the default
+        this.HUDSpace.FindObjectByName("RecordButton").Sprite.SpriteSource = this.HUDSpace.FindObjectByName("RecordButton").RecordButtonLogic.DefaultSprite;
+        
+        //Resetting the hasDied in the PlayerController
+        this.Player.PlayerController.HasDied = false;
+    }
+}

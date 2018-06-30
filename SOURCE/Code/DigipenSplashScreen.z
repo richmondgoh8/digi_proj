@@ -1,0 +1,73 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+
+Brief Description: Controls Fade in Fade out of logo before entering next level
+*/
+
+class DigipenSplashScreen : ZilchComponent
+{
+    /*
+    Loading Time refers to time that loading screen will remain unaltered for.
+    NextCheck is used with CheckRate to ensure that the statement is running every second instead of 60 frames/second
+    FadeSpeed refers to the rate in which the alpha becomes 0
+    Boolean is used to check which runtime runtime event should occur.
+    */
+    var LoadingTime:Real = 3;
+    var NextCheck:Real;
+    var CheckRate:Real = 1;
+    var FadeSpeed:Real = 0.06;
+    var Fade:Real = 1;
+    var StartFading:Boolean = false;
+    //SplashScreen is referring to the next level to load after fade out
+    [Property]
+    var SplashScreen : Level;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Mouse is hidden and is not able to move out of the windows boundary area
+        Zero.Mouse.Trapped = true;
+        Zero.Mouse.Cursor = Cursor.Invisible;
+        
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        
+    }
+    /*
+    Primary purpose of function is to first allow the loading screen to stay for 3 seconds followed by which
+    it will start to fade out with a rate of 0.05 every 0.06 seconds
+    The next screen is loaded the moment total fade out occurs
+    */
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        // Control Variable that prevents fade from occuring too fast.
+        this.LoadingTime -= event.Dt;
+        
+        if(event.TimePassed > this.NextCheck && this.LoadingTime > -0.1)
+        {
+            this.NextCheck += this.CheckRate;
+            
+            if(Math.Round(this.LoadingTime) == 0)
+            {
+                this.StartFading = true;
+            }
+        }
+        //If all criterias are made then lastly proceed to the next screen 2 nested in 1 main if
+        if(this.StartFading == true)
+        {
+            if(event.TimePassed > this.NextCheck && this.Fade > 0)
+            {
+                this.NextCheck += this.FadeSpeed;
+                this.Fade -= 0.05;
+                this.Owner.Sprite.Color = Real4(255.0/255,255.0/255,255.0/255,this.Fade);
+                
+                if(this.Fade < 0)
+                {
+                    this.StartFading = false;
+                    this.Space.LoadLevel(this.SplashScreen);
+                }
+            }
+        }
+        
+    }
+}

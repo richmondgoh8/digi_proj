@@ -1,0 +1,145 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions which display the duration of button pressed during the recording state of the game.
+
+*/
+
+class TimerDisplayLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Variable to store timer
+    var Timer : Real = 0.0;
+    
+    //Variable to store timer text
+    var TimerText : Cog = null;
+    
+    //Boolean checks required
+    var RightInput : Boolean = false;
+    var LeftInput : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.TimerText = this.Owner.FindChildByName("TimerText");
+        
+        
+        
+        //Connect UpdateEvent
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Check if player is in game level
+        if(this.IsGameLevel())
+        {
+            //Check if game state is in recording state
+            if(this.MainSpace.LevelSettings.GameStateController.GameState == 2)
+            {
+                //Check if 'D' is down
+                if(Zero.Keyboard.KeyIsDown(Keys.D))
+                {
+                    if(!this.RightInput)
+                    {
+                        //Set RightInput to true only if it is false
+                        this.RightInput = true;
+                        
+                        //Set the other input as false
+                        this.LeftInput = false;
+                        
+                        //Reset the Timer
+                        this.ResetTimer();
+                    }
+                    
+                    //If RightInput is true, increase timer
+                    if(this.RightInput)
+                        this.IncreaseTimer(event);
+                }
+                //Check if 'A' is down
+                else if(Zero.Keyboard.KeyIsDown(Keys.A))
+                {
+                    if(!this.LeftInput)
+                    {
+                        //Set LeftInput to true only if it is false
+                        this.LeftInput = true;
+                        
+                        //Set the other input as false
+                        this.RightInput = false;
+                        
+                        //Reset the Timer
+                        this.ResetTimer();
+                    }
+                    
+                    //If LeftInput is true, increase timer
+                    if(this.LeftInput)
+                        this.IncreaseTimer(event);
+                }
+                //Check if 'W' is pressed
+                else if(Zero.Keyboard.KeyIsPressed(Keys.W))
+                {
+                    //Set the other input as false
+                    this.LeftInput = false;
+                    this.RightInput = false;
+                    
+                    //Reset the Timer
+                    this.ResetTimer();
+                }
+                
+                //Update the timer text
+                this.UpdateTimer();
+            }
+        }
+    }
+    
+    //Function that update the timer text
+    function UpdateTimer()
+    {
+        //Round off timer to 2 decimal place
+        this.Timer = Math.Round(this.Timer, -2);
+        
+        //Set timer value to timer text
+        this.TimerText.SpriteText.Text = "`this.Timer`";
+    }
+    
+    //Function that increase the timer
+    function IncreaseTimer(event : UpdateEvent)
+    {
+        this.Timer += event.Dt;
+    }
+    
+    //Function that reset the timer
+    function ResetTimer()
+    {
+        this.Timer = 0.0;
+    }
+    
+    //Function that display/close timer display based on input boolean parameter
+    function OnTimerDisplay(bool : Boolean)
+    {
+        this.Owner.Sprite.Visible = bool;
+        this.TimerText.SpriteText.Visible = bool;
+        this.Owner.FindChildByName("UnitText").SpriteText.Visible = bool;
+        
+        //Reset the timer
+        this.ResetTimer();
+    }
+    
+    //Function to check if player is in game level
+    function IsGameLevel() : Boolean
+    {
+        for(var i = 1; i < 5; ++i)
+        {
+            if(this.MainSpace.CurrentLevel.Name == "Level0`i`")
+                return true;
+        }
+        return false;
+    }
+}

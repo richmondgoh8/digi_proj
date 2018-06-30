@@ -1,0 +1,135 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+
+Brief Description: Controls of fade in fade out text endless loop
+*/
+
+    /*
+        Time related variables are used to allow non-runtime events to occur i.e. not wanting events to happen to fade
+        CreditsOrder used to determine which credit should show first
+        FadeIn decides when to fade in and when to fade out
+        GuiderText to inform player how to exit the credit scene as it is an endless loop
+    */
+
+
+class CreditFadeInOut : ZilchComponent
+{
+    
+    var TargetObject:Cog;
+    var Fade:Real = 0;
+    var FadeSpeed:Real = 0.06;
+    var NextCheck:Real;
+    var SelfTime:Real = 0;
+    var TextArray : Array[String] = Array[String]();
+    var CreditsOrder:Integer = 0;
+    var FlipBoolean:Boolean = false;
+    var FadeIn:Boolean = false;
+    var BackScreen: Level = Level.Find("StartScreen01");
+    
+    [Property]
+    var GuiderText:Archetype;
+    
+    /*
+        Initialize function used to connect to keyboard and logic update
+        added array to store different text and \n to break LinearAxisJoint
+        created tmp variable to hold guidertext
+        this.TestDrama function is run next
+    */
+    
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        Zero.Connect(Zero.Keyboard,Events.KeyDown,this.RevertBack);
+        
+        this.TargetObject = this.Space.FindObjectByName("1stCredit");
+        this.TargetObject.SpriteText.Color = Real4(30.0/255,255.0/255,255.0/255,1.0);
+        
+        this.TextArray.Add("All content @ 2016 DigiPen Institute of Technology Singapore. All Rights Reserved"); //Index 0
+        this.TextArray.Add("Game Instructors    \n    Cristian Astudillo\n John Doran\n Chor Guan Teo");//Index 4 
+        this.TextArray.Add("Lead Artist         \n    Shermann Sia"); //Index 0
+        this.TextArray.Add("Lead Programmer     \n    Wen Lin"); //Index 1
+        this.TextArray.Add("Lead System Engineer\n    Gui Hao"); //Index 2
+        this.TextArray.Add("Lead Designer       \n    Richmond Goh"); //Index 3
+        this.TextArray.Add("President           \n    Claude Comair"); //Index 5
+        
+        var helloWorld = this.Space.CreateAtPosition(this.GuiderText,Real3(0,-7,0));
+        helloWorld.Area.Size = Integer2(20,2);
+        helloWorld.SpriteText.FontSize = 35;
+        helloWorld.SpriteText.Text = "Press Back or Enter to return to main menu";
+
+        this.TestDrama();
+    }
+    // Go backs when either back key or enter is pressed
+    function RevertBack(event:KeyboardEvent)
+    {
+        if(event.Key == Keys.Back || event.Key == Keys.Enter)
+        {
+            this.Space.LoadLevel(this.BackScreen);
+        }
+    }
+    
+    /*This function will be used to fade in and out. It uses a boolean to determine which action to carry out */
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        this.SelfTime += event.Dt;
+        if(event.TimePassed > this.NextCheck)
+        {
+            if(this.Fade >= 0 && this.FadeIn == false)
+            {
+                this.NextCheck = event.TimePassed + this.FadeSpeed;
+                this.Fade -= 0.05;
+                this.TargetObject.SpriteText.Color = Real4(25.0/255,255.0/255,255.0/255,this.Fade);
+            }
+            
+            else if(this.FlipBoolean == false && this.FadeIn == false)
+            {
+                this.FlipBoolean = true;
+                this.TestDrama();
+                
+            }
+            
+            else if(this.Fade < 1 && this.FadeIn == true)
+            {
+                this.NextCheck = event.TimePassed + this.FadeSpeed;
+                this.Fade += 0.05;
+                this.TargetObject.SpriteText.Color = Real4(25.0/255,255.0/255,255.0/255,this.Fade);
+            }
+            
+            else if(this.Fade >= 1 && this.FadeIn == true)
+            {
+                this.FadeIn=false;
+                this.Fade = 1;
+            }
+
+            
+        }
+        
+
+    }
+    /*Test Drama is used to display the credits in order and update accordingly for each iteration*/
+    function TestDrama()
+    {
+        
+        if(this.CreditsOrder < this.TextArray.Count)
+        {
+            this.TargetObject.SpriteText.Text = this.TextArray[this.CreditsOrder];
+            this.CreditsOrder +=1;
+            this.Fade = 0;
+            this.FlipBoolean = false;            
+            this.FadeIn = true;
+        }
+        
+        else
+        {
+            this.CreditsOrder = 0;
+            this.TargetObject.SpriteText.Text = this.TextArray[this.CreditsOrder];
+            this.CreditsOrder +=1;
+            this.Fade = 0;
+            this.FlipBoolean = false;     
+            this.FadeIn = true;
+        }
+
+    }
+}

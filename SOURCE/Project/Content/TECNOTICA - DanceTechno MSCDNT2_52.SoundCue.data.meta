@@ -1,0 +1,11 @@
+DataContent = 
+{
+	DataBuilder = 
+	{
+		string Name = "TECNOTICA - DanceTechno MSCDNT2_52",
+		uint64 ResourceId = 5828b3f8bc7af08f,
+		string LoaderType = "SoundCue",
+		uint Version = 0,
+		bool ShowInEditor = true,
+	},
+},

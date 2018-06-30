@@ -1,0 +1,15 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "DialogueSystem",
+		uint64 ResourceId = 5857b38ebac483a7,
+	},
+	ContentTags = 
+	{
+		Array Tags = 
+		[
+			"PostLevelSelectionDemo",
+		],
+	},
+},

@@ -1,0 +1,8 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "GameEscLogic",
+		uint64 ResourceId = 58f442b5ed6ca9cf,
+	},
+},

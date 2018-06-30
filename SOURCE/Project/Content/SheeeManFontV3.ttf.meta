@@ -1,0 +1,8 @@
+FontContent = 
+{
+	FontBuilder = 
+	{
+		string Name = "SheeeManFontV3",
+		uint64 ResourceId = 5880d1cda697c8a5,
+	},
+},

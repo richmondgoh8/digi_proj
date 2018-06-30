@@ -1,0 +1,163 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Affects what is shown to the player in the record and execute state to show the movements that the robot is going to do
+*/
+
+//This script is used for display the movements as sprites
+class MovementDisplay : ZilchComponent
+{
+    //Stores the Main Space
+    var MainSpace : Space = null;
+    
+    //Boolean that is being changed from outside to enable/disable the running of this script
+    var Displaying : Boolean = false;
+    
+    //Array to store the input
+    var ArrayInput : Array[Integer]; 
+    
+    //Array to store the background object
+    var ArrayChildBack : Array[Cog];
+    
+    //Boolean for a run once check
+    var DoOnce : Boolean;
+    
+    //A variable used for counting/loops
+    var Count : Integer;
+    
+    //Setting the sprites that we want into each of their slots
+    //When we want the spriteLeft, it will be this source
+    [Property]
+    var SpriteLeft : SpriteSource = null;
+    
+    //Same for spriteRight, it will be this source
+    [Property]
+    var SpriteRight : SpriteSource = null;
+    
+    //Same for spriteUp, it will be this source
+    [Property]
+    var SpriteUp : SpriteSource = null;
+    
+    //Should not be showing the default sprite at all
+    //Will only occur when some kind of error is triggered
+    //Used as a check/backup
+    [Property]
+    var SpriteDefault : SpriteSource = null;
+    
+    //This function is only run once at the start to initialize variables
+    function Initialize(init : CogInitializer)
+    {
+        //Grabbing the main space and saving it into the declared variable
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        
+        //Initializing the input for arrayinput which stores input
+        this.ArrayInput = new Array[Integer](10);
+        
+        //Initializing the input for arraychildback which stores the children of this object
+        //And acts as the background for the inputs
+        this.ArrayChildBack = new Array[Cog](10);
+        
+        //Setting the boolean variable doOnce to true, so that the code that depends on it would run once
+        this.DoOnce = true;
+        
+        //Telling zero that OnLogicUpdate will be running constantly
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+
+    //This function is run constantly
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //When the displaying boolean is true, then it will enter
+        if(this.Displaying)
+        {
+            //If doOnce is true, then it will enter
+            if(this.DoOnce)
+            {
+                //As long as the count is less than 10, it will run this initializing
+                for(this.Count = 0; this.Count < 10; ++this.Count)
+                {
+                    //Initializing the sprite text into the array
+                    this.ArrayChildBack[this.Count] = this.Owner.FindChildByName("Move`this.Count`");
+                }
+                
+                //Cannot enter here again once initialized by setting the boolean variable for this into false
+                this.DoOnce = false;
+            }
+            
+            //For each variable in the array
+            for(this.Count = 0; this.Count < 10; ++this.Count)
+            {
+                //Setting the input from level into the ArrayInput here
+                this.ArrayInput[this.Count] = this.MainSpace.FindObjectByName("LevelSettings").GameStateController.ArrayIn[this.Count] as Integer;
+                
+                //Change the sprite source based on the inputs
+                if(this.Count > this.MainSpace.FindObjectByName("LevelSettings").GameStateController.InputUsed - 1)
+                {
+                    //If the input taken was the input for moving left
+                    if(this.ArrayInput[this.Count] == 1)
+                    {
+                        //Set the spritesource to the sprite that was saved in spriteleft
+                        this.ArrayChildBack[this.Count].Sprite.SpriteSource = this.SpriteLeft;
+                    }
+                    //If the input taken was the input for moving right
+                    else if(this.ArrayInput[this.Count] == 2)
+                    {
+                        //Set the spritesource to the sprite that was saved in spriteright
+                        this.ArrayChildBack[this.Count].Sprite.SpriteSource = this.SpriteRight;
+                    }
+                    //If the input taken was the input for jumping
+                    else if(this.ArrayInput[this.Count] == 3)
+                    {
+                        //Set the spritesource to the sprite that was saved in spriteup
+                        this.ArrayChildBack[this.Count].Sprite.SpriteSource = this.SpriteUp;
+                    }
+                    //In case it is none of the values, default it to the default sprite
+                    //Should not enter here ever
+                    else
+                    {
+                        //Default Sprite
+                        this.ArrayChildBack[this.Count].Sprite.SpriteSource = this.SpriteDefault;
+                    }
+                }
+                
+                //Setting the sprite to true for the child objects
+                this.ArrayChildBack[this.Count].Sprite.Visible = true;
+            }
+            
+            //Setting the sprite of this owner to true
+            this.Owner.Sprite.Visible = true;
+        }
+    }
+    
+    //This function resets all the variables within this script
+    function Reset()
+    {
+        //Console.WriteLine("Resetting MovementDisplay");
+        
+        //Run through the loop with a for loop
+        for(this.Count = 0; this.Count < 10; ++this.Count)
+        {
+            //Resetting
+            //Setting the values in the arrayinput to 0
+            this.ArrayInput[this.Count] = 0;
+            
+            //If the arraychildback is not empty
+            if(this.ArrayChildBack[this.Count] != null)
+            {
+                //Set the spritesource back to default
+                this.ArrayChildBack[this.Count].Sprite.SpriteSource = this.SpriteDefault;
+                
+                //before making it invisible
+                this.ArrayChildBack[this.Count].Sprite.Visible = false;
+            }
+            
+            //setting the sprite of the owner to invisible too
+            this.Owner.Sprite.Visible = false;
+            
+            //the boolean check variable is set to false also
+            this.Displaying = false;
+        }
+    }
+}

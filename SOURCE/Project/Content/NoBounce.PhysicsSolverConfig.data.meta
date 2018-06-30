@@ -1,0 +1,11 @@
+DataContent = 
+{
+	DataBuilder = 
+	{
+		string Name = "NoBounce",
+		uint64 ResourceId = 58e9029df7f2ca94,
+		string LoaderType = "PhysicsSolverConfig",
+		uint Version = 0,
+		bool ShowInEditor = true,
+	},
+},

@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "Restart2",
+		uint64 ResourceId = 588331e35c47603c,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 47,
+		uint FrameSizeY = 15,
+		uint FrameCount = 1,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 23,
+		float OriginY = 7,
+		float PixelsPerUnit = 25,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

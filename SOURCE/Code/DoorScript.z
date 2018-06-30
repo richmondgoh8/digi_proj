@@ -1,0 +1,54 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the Door does upon collision. When player collides with door,
+        triggers the win menu. Door also stores the next level to be loaded.
+
+*/
+
+class DoorScript : ZilchComponent
+{
+    //Variable to store next level
+    [Property]
+    var NextLevel : Level;
+    
+    //Variable to store HUD Space
+    var HUDSpace : Space;
+    
+    //Boolean to check player has entered door
+    var HasEntered : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.HUDSpace = this.GameSession.FindSpaceByName("HUDSpace");
+        
+        //Connect CollisionEvent required
+        Zero.Connect(this.Owner, Events.CollisionStarted, this.OnCollisionStarted);
+    }
+
+    function OnCollisionStarted(event : CollisionEvent)
+    {
+        //If door collided with player
+        if(event.OtherObject.Name == "Player")
+        {
+            if(!this.HasEntered)
+            {
+                //Display Win Menu
+                var myEvent = ZilchEvent();
+                this.HUDSpace.DispatchEvent("UpdateWinMenu", myEvent);
+                
+                //Set boolean HasEnter to true
+                this.HasEntered = true;
+                
+                //Resets the scripts
+                this.LevelSettings.GameStateController.Reset();
+                this.HUDSpace.FindObjectByName("TimerDisplay").TimerDisplayLogic.OnTimerDisplay(false);
+            }
+        }
+    }
+}

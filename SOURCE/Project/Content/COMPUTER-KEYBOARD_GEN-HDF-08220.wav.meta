@@ -1,0 +1,11 @@
+AudioContent = 
+{
+	SoundBuilder = 
+	{
+		string Name = "COMPUTER-KEYBOARD_GEN-HDF-08220",
+		uint64 ResourceId = 5828b5b24f24e870,
+		bool Compressed = false,
+		bool Streamed = false,
+		SoundLoadType LoadType = Decompress,
+	},
+},

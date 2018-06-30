@@ -1,0 +1,30 @@
+PhysicsSolverConfig = 
+{
+	uint SolverIterationCount = 10,
+	uint PositionIterationCount = 2,
+	float VelocityRestitutionThreshold = 1000,
+	bool WarmStart = true,
+	bool CacheContacts = true,
+	ContactTangentTypes TangentType = OrthonormalTangents,
+	PositionCorrection PositionCorrectionType = PostStabilization,
+	SolverType SolverType = Basic,
+	uint SubType = 1,
+	ManipulatorJointBlock = 
+	{
+		float Slop = 0.0199999996,
+		float LinearBaumgarte = 4.5,
+		float AngularBaumgarte = 4.5,
+		float LinearErrorCorrection = 0.200000003,
+		float AngularErrorCorrection = 0.200000003,
+		ConstraintPositionCorrection CorrectionType = Baumgarte,
+	},
+	PhyGunJointBlock = 
+	{
+		float Slop = 0.0199999996,
+		float LinearBaumgarte = 4.5,
+		float AngularBaumgarte = 4.5,
+		float LinearErrorCorrection = 0.200000003,
+		float AngularErrorCorrection = 0.200000003,
+		ConstraintPositionCorrection CorrectionType = Baumgarte,
+	},
+},

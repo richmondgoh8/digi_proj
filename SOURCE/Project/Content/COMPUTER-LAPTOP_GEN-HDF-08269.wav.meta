@@ -1,0 +1,11 @@
+AudioContent = 
+{
+	SoundBuilder = 
+	{
+		string Name = "COMPUTER-LAPTOP_GEN-HDF-08269",
+		uint64 ResourceId = 5828b4668975791a,
+		bool Compressed = false,
+		bool Streamed = false,
+		SoundLoadType LoadType = Decompress,
+	},
+},

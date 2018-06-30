@@ -1,0 +1,105 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann sia
+
+Brief Description: Fade in Fade out of Plus3 Logo before loading next level.
+*/
+
+class SplashFloat : ZilchComponent
+{
+    /*
+    Loading Time refers to time that loading screen will remain unaltered for.
+    NextCheck is used with CheckRate to ensure that the statement is running every second instead of 60 frames/second
+    FadeSpeed refers to the rate in which the alpha becomes 0
+    Boolean is used to check which runtime runtime event should occur.
+    */
+    //Splash Screen used as a property variable to store next level to proceed
+    //TargetObjectText to be used to connect to first text found in the space level    
+    //TargetObjectText2 to be used to connect to second text found in the space level
+    var LoadingTime:Real = 0.2;
+    var NextCheck:Real;
+    var CheckRate:Real = 1;
+    var FadeSpeed:Real = 0.1;
+    var Fade:Real = 1;
+    var StartFading:Boolean = false;
+    
+    [Property]
+    var SplashScreen : Level;
+
+    var TargetObjectText:Cog;
+    var TargetObjectText2:Cog;
+    
+    /*
+        Function Initialize primary purpose is to hide mouse, connect to functions OnMouseDown, OnLogicUpdate and SkipScreen.
+        TargetObjectText cog will become a text called PowerText
+        TargetObjectText2 cog will become a text called DevelopText
+    */
+    function Initialize(init : CogInitializer)
+    {
+        /*Mouse is hidden and is not able to move out of the windows boundary area*/
+        Zero.Mouse.Trapped = true;
+        Zero.Mouse.Cursor = Cursor.Invisible;
+        
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        Zero.Connect(this.Space, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(Zero.Keyboard,Events.KeyDown,this.SkipScreen);
+        
+        this.TargetObjectText = this.Space.FindObjectByName("PowerText");
+        this.TargetObjectText2 = this.Space.FindObjectByName("DevelopText");
+    }
+    
+    //Function allows for any mouse events to skip to the next screen
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        this.Space.LoadLevel(this.SplashScreen);
+    }
+    
+    //Function allows Keystrokes of space, enter and escape to skip to the next screen
+    function SkipScreen(event:KeyboardEvent)
+    {
+        if(event.Key == Keys.Space || event.Key == Keys.Enter || event.Key == Keys.Escape)
+        {
+            this.Space.LoadLevel(this.SplashScreen);
+        }
+    }
+    
+    /*
+    Primary purpose of function is to first allow the loading screen to stay for 3 seconds followed by which
+    it will start to fade out with a rate of 0.05 every 0.06 seconds
+    The next screen is loaded the moment total fade out occurs
+    */
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        
+        this.LoadingTime -= event.Dt;
+        
+        if(event.TimePassed > this.NextCheck && this.LoadingTime > -0.1)
+        {
+            this.NextCheck += this.CheckRate;
+            
+            if(Math.Round(this.LoadingTime) == 0)
+            {
+                this.StartFading = true;
+            }
+        }
+        
+        if(this.StartFading == true)
+        {
+            if(event.TimePassed > this.NextCheck && this.Fade > 0)
+            {
+                this.NextCheck += this.FadeSpeed;
+                this.Fade -= 0.05;
+                this.Owner.Sprite.Color = Real4(255.0/255,255.0/255,255.0/255,this.Fade);
+                this.TargetObjectText.SpriteText.Color = Real4(255.0/255,255.0/255,255.0/255,this.Fade);
+                this.TargetObjectText2.SpriteText.Color = Real4(255.0/255,255.0/255,255.0/255,this.Fade);
+                if(this.Fade < 0)
+                {
+                    this.StartFading = false;
+                    this.Space.LoadLevel(this.SplashScreen);
+                }
+            }
+        }
+        
+    }
+}

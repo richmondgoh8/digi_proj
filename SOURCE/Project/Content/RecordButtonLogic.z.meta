@@ -1,0 +1,8 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "RecordButtonLogic",
+		uint64 ResourceId = 576c877be51b6756,
+	},
+},

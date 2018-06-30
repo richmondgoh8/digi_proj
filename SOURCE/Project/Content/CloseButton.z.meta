@@ -1,0 +1,8 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "CloseButton",
+		uint64 ResourceId = 58eef70bab921533,
+	},
+},

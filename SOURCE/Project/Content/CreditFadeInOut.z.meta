@@ -1,0 +1,8 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "CreditFadeInOut",
+		uint64 ResourceId = 582b896a5eb8a52d,
+	},
+},

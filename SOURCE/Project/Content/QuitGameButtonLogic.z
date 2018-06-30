@@ -1,0 +1,89 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the quit button does when clicked. Opens up the quit confirmation
+        menu.
+
+*/
+
+class QuitGameButtonLogic : ZilchComponent
+{
+    //Stores Default & Hover Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    //Variable to store confirmation menu cog
+    var ConfirmationMenu : Cog = null;
+    
+    //Boolean check for confirmation menu is displaying
+    var IsConfirmOn : Boolean = false;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variable
+        this.ConfirmationMenu = this.Space.FindObjectByName("ConfirmationMenu");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click if quit game confirmation is not displayed
+        if(!this.IsConfirmOn)
+            this.ClickedState();
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Display confirmation menu
+        this.DisplayConfirmation(true);
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hover sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+    
+    //Function to display/close confirmation menu based on input boolean parameter
+    function DisplayConfirmation(bool : Boolean)
+    {
+        //Display confirmation menu
+        this.ConfirmationMenu.Sprite.Visible = bool;
+        this.ConfirmationMenu.FindChildByName("YesButton").Sprite.Visible = bool;
+        this.ConfirmationMenu.FindChildByName("NoButton").Sprite.Visible = bool;
+        this.ConfirmationMenu.FindChildByName("ConfirmationText").Sprite.Visible = bool;
+        
+        
+        //Set boolean for confirmation menu is displaying = true/false
+        this.IsConfirmOn = bool;
+    }
+}

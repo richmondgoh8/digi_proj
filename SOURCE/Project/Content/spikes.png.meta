@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "spikes",
+		uint64 ResourceId = 58988c718d8204d0,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 50,
+		uint FrameSizeY = 50,
+		uint FrameCount = 1,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 25,
+		float OriginY = 25,
+		float PixelsPerUnit = 24,
+		bool Smoothing = true,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

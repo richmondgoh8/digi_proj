@@ -1,0 +1,15 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "LevelSelectionMenuController",
+		uint64 ResourceId = 585545791141ed50,
+	},
+	ContentTags = 
+	{
+		Array Tags = 
+		[
+			"LevelSelection",
+		],
+	},
+},

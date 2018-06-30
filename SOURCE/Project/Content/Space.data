@@ -1,0 +1,46 @@
+Space = 
+{
+	LinkId = 
+	{
+		uint Id = 1,
+	},
+	Archetyped = 
+	{
+		string Name = "554cea0f94af6dc4:Space",
+	},
+	TimeSpace = 
+	{
+		float MaxDt = 0.300000012,
+		float MinDt = 9.99999997e-07,
+		float TimeScale = 1,
+		uint TimeMode = 0,
+		uint StepCount = 1,
+	},
+	GraphicsSpace = 
+	{
+		TransparentSort TransparentSort = ViewDepth,
+		string SpriteLayerOrder = "585525dd15125e08:Menu",
+		bool UseRandomSeed = false,
+		uint RandomSeed = 0,
+	},
+	ActionSpace = 
+	{
+	},
+	PhysicsSpace = 
+	{
+		bool AllowSleep = true,
+		bool Mode2D = true,
+		bool Deterministic = true,
+		uint SubStepCount = 1,
+		string CollisionFilterName = "4e66a5c0b9dc59b9:DefaultCollisionTable",
+		string PhysicsSolverConfigName = "58e9029df7f2ca94:NoBounce",
+		string DynamicBroadphaseType = "DynamicAabbTree",
+		string StaticBroadphaseType = "StaticAabbTree",
+	},
+	SoundSpace = 
+	{
+	},
+	ReactiveSpace = 
+	{
+	},
+},

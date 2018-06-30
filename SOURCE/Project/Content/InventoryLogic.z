@@ -1,0 +1,129 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Koh Wen Lin
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions which initializes the inventory menu and creates the items to be 
+        added onto inventory menu when loaded into level.
+
+*/
+
+class InventoryLogic : ZilchComponent
+{
+    //Variable to store main space
+    var MainSpace : Space = null;
+    
+    //Arrays to store item and item slot position
+    var Inventory : Array[Cog];
+    var ItemSlot : Array[Real3];
+    
+    //Variable to store player cog
+    var Player : Cog = null;
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.MainSpace = this.GameSession.FindSpaceByName("Main");
+        this.Player = this.MainSpace.FindObjectByName("Player");
+        
+        //Create item slot array
+        this.ItemSlot = new Array[Real3]();
+        
+        //Initialize array with item slot position
+        for(var i = 0; i < 5; ++i)
+        {
+            this.ItemSlot.Add(this.Space.FindObjectByName("Item`i+1`").Transform.WorldTranslation);  
+        }
+    }
+    
+    //Function to initialize item array
+    function InitItem()
+    {
+        //Create item array
+        this.Inventory = new Array[Cog]();
+        
+        //Execute CreateItem function
+        this.CreateItem();
+    }
+    
+    //Function that create item at item slot position
+    function CreateItem()
+    {
+        this.Player = this.MainSpace.FindObjectByName("Player");
+        //Spawn the specified item based on item type at item slot position and store in item array
+        for(var i = 0; i < this.Player.PlayerController.Inventory.Count; ++i)
+        {
+            //Set item slot position as spawn position
+            var spawnPosition = this.ItemSlot[i];
+            spawnPosition += Real3 (0, 0, 0.1);
+            
+            //Set archetype to spawn as empty
+            var archetypeToSpawn = Archetype.Empty;
+             
+            //Check item type and set the correct archetype to spawn
+            if(this.Player.PlayerController.Inventory[i] == 1)
+                archetypeToSpawn = Archetype.RampItem;
+            else if(this.Player.PlayerController.Inventory[i] == 2)
+                archetypeToSpawn = Archetype.CrateItem;
+            
+            //Spawn item at spawn position
+            var createdItem = this.Space.CreateAtPosition(archetypeToSpawn, spawnPosition);
+            
+            //Store item position
+            createdItem.ItemLogic.ItemPosition = i;
+            
+            //Add spawned item in item array
+            this.Inventory.Add(createdItem);
+        }
+    }
+    
+    //Function that destroy all item
+    function DestroyItem()
+    {
+        if(this.Inventory != null)
+        {
+            for(var i = 0; i < this.Inventory.Count; ++i)
+            {
+                if(this.Inventory[i] != null)
+                    this.Inventory[i].Destroy();
+            }
+            this.Inventory = null;
+        }
+    }
+    
+    //Function that display/don't display item in inventory menu
+    function RevealHideItem(display : Boolean)
+    {
+        this.Owner.Sprite.Visible = display;
+        for(var i = 0; i < 5; ++i)
+            this.Owner.FindChildByName("Item`i+1`").Sprite.Visible = display;
+    }
+    
+    //Function that respawn the item at input position
+    function RespawnItem(slot : Integer)
+    {
+        //Set the input position as spawn position
+        var spawnPosition = this.ItemSlot[slot];
+        spawnPosition += Real3 (0, 0, 0.1);
+        
+        //Set archetype to spawn as empty
+        var archetypeToSpawn = Archetype.Empty;
+        
+        //Check item type and set the correct archetype to spawn
+        if(this.Player.PlayerController.Inventory[slot] == 1)
+            archetypeToSpawn = Archetype.RampItem;
+        else if(this.Player.PlayerController.Inventory[slot] == 2)
+            archetypeToSpawn = Archetype.CrateItem;
+        
+        //Spawn item at spawn position
+        var createdItem = this.Space.CreateAtPosition(archetypeToSpawn, spawnPosition);
+        
+        //Store item position
+        createdItem.ItemLogic.ItemPosition = slot;
+        
+        //Add spawned item in item array
+        this.Inventory.Add(createdItem);
+    }
+}

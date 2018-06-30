@@ -1,0 +1,7 @@
+ContentLibrary = 
+{
+	string Name = "Swirl",
+	uint64 LibraryId = 571d623f213fb0e4,
+	string SourceControlType = "",
+	bool ReadOnly = false,
+},

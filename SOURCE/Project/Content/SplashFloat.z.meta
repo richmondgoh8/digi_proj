@@ -1,0 +1,15 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "SplashFloat",
+		uint64 ResourceId = 5829c687b51c1878,
+	},
+	ContentTags = 
+	{
+		Array Tags = 
+		[
+			"DigipenSplashScreen",
+		],
+	},
+},

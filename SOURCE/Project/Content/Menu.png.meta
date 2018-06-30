@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "Menu",
+		uint64 ResourceId = 58834f665449a449,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 75,
+		uint FrameSizeY = 75,
+		uint FrameCount = 1,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 37,
+		float OriginY = 37,
+		float PixelsPerUnit = 25,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

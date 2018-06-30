@@ -1,0 +1,84 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions for what the How To Play button does when clicked. Display How To Play screen in-game
+
+*/
+
+class HowToPlayButtonLogic : ZilchComponent
+{
+    //Stores Default & Hover Sprites for button
+    [Property]
+    var DefaultSprite : SpriteSource;
+    [Property]
+    var HoveredSprite : SpriteSource;
+    
+    //Variables to store required cog
+    var HowToPlayScreen : Cog = null;
+    var QuitGame : Cog = null;
+    
+    //Boolean check for help screen
+    var IsHelpOn : Boolean = false; 
+    
+    function Initialize(init : CogInitializer)
+    {
+        //Initialize variables
+        this.HowToPlayScreen = this.Space.FindObjectByName("HowToPlayScreen");
+        this.QuitGame = this.Space.FindObjectByName("QuitGameButton");
+        
+        //Connects ViewPortMouse Events required
+        Zero.Connect(this.Owner, Events.MouseDown, this.OnMouseDown);
+        Zero.Connect(this.Owner, Events.MouseEnter, this.OnMouseEnter);
+        Zero.Connect(this.Owner, Events.MouseExit, this.OnMouseExit);
+    }
+    
+    function OnMouseDown(event : ViewportMouseEvent)
+    {
+        //Execute button function when click if quit game confirmation is not displayed
+        if(!this.QuitGame.QuitGameButtonLogic.IsConfirmOn)
+            this.ClickedState();
+    }
+
+    function OnMouseEnter(event : ViewportMouseEvent)
+    {
+        //Changes to Hover Sprite when mouse over
+        this.HoveredState();
+    }
+
+    function OnMouseExit(event : ViewportMouseEvent)
+    {
+        //Changes to Default Sprite when mouse exit
+        this.DefaultState();
+    }
+    
+    //Function for when button is clicked
+    function ClickedState()
+    {
+        //Check if Help Screen is not displayed
+        if(!this.HowToPlayScreen.Sprite.Visible)
+        {
+            //Set boolean IsHelpOn to true
+            this.IsHelpOn = true;
+            
+            //Display Help Screen
+            this.HowToPlayScreen.Sprite.Visible = true;
+            this.HowToPlayScreen.FindChildByName("CloseButton").Sprite.Visible = true;
+        }
+    }
+    
+    function DefaultState()
+    {
+        //Set sprite to default sprite
+        this.Owner.Sprite.SpriteSource = this.DefaultSprite;
+    }
+
+    function HoveredState()
+    {
+        //Set sprite to hovered sprite
+        this.Owner.Sprite.SpriteSource = this.HoveredSprite;
+    }
+}

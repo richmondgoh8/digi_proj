@@ -1,0 +1,56 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Richmond Goh
+
+Brief Description: Send events based on input selected
+*/
+
+    /*
+        Initalize custom event called MoveUp and MoveDown
+        Set BUtton names with button events
+    */
+class InputEvents : ZilchComponent
+{
+    
+    sends MoveUp: ZilchEvent;
+    sends MoveDown: ZilchEvent;
+    
+    var MoveUp : Keys = Keys.W;
+    var MoveUp2 : Keys = Keys.Up;
+    var MoveDown : Keys = Keys.S;
+    var MoveDown2 : Keys = Keys.Down;
+    
+    [Property]
+    var SoundEffect:SoundCue;
+    /*
+    Function Initalize is used to connect the KeyboardEvents
+    */
+    
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(Zero.Keyboard,Events.KeyDown,this.OnKeyDown);
+    }
+    
+    /*
+        Dispatches Event to another script called MenuController
+    */
+    function OnKeyDown(event:KeyboardEvent)
+    {
+        if (event.Key == this.MoveUp || event.Key == this.MoveUp2)
+        {
+            this.Owner.DispatchEvent(Events.MoveUp,ZilchEvent());
+            
+            //Console.WriteLine("Going Up");
+            this.Space.SoundSpace.PlayCue(this.SoundEffect);
+        }
+        
+        if (event.Key == this.MoveDown || event.Key == this.MoveDown2)
+        {
+            this.Owner.DispatchEvent(Events.MoveDown,ZilchEvent());
+            this.Space.SoundSpace.PlayCue(this.SoundEffect);
+        }
+        
+    }
+    
+}

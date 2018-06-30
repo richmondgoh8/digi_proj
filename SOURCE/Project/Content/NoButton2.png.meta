@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "NoButton2",
+		uint64 ResourceId = 58815f0ab440f3fd,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 25,
+		uint FrameSizeY = 13,
+		uint FrameCount = 1,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 12,
+		float OriginY = 6,
+		float PixelsPerUnit = 25,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

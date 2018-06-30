@@ -1,0 +1,8 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "JumpController",
+		uint64 ResourceId = 57022b41fb844de4,
+	},
+},

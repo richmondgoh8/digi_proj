@@ -1,0 +1,24 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+Code that was done: 100%
+
+Brief Description : 
+        Implement functions which tells the level to allow Escape button to be handled by us.
+
+*/
+
+class GameEscLogic : ZilchComponent
+{
+    function Initialize(init : CogInitializer)
+    {
+        Zero.Connect(this.GameSession, Events.GameRequestQuit, this.OnGameRequestQuit);
+    }
+
+    function OnGameRequestQuit(event : GameEvent)
+    {
+        //Allow Escape Button to be handled by us
+        event.Handled = true;
+    }
+}

@@ -1,0 +1,141 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Cheong Gui Hao
+
+Brief Description: Controls how the Camera reacts to the player
+*/
+
+//This script controls the movements made by the camera
+class CameraMovement : ZilchComponent
+{
+    //Creating the variables to store the camera position
+    //Taking in the position of the camera from outside of the script
+    [Property]
+    var CameraPos : Real3 = Real3();
+    
+    //Creating the variables to store the camera size
+    //Taking in the camera size from outside of the script
+    [Property]
+    var CameraSize : Real = Real();
+    
+    //Creating the variables for player position which stores the position of the player at any point int time
+    var PlayerPos : Real3 = Real3();
+    
+    //Creating the variable for movement, which stores the vector for moving towards another point
+    var Movement : Real3 = Real3();
+    
+    //Creating the variables to store the x and y coordinates of the movement before it is normalized
+    //This is to enable the checking of coordinates differences
+    var UnNormX : Real = Real();
+    var UnNormY : Real = Real();
+    
+    //Creating the variable that determines the movement speed of the camera, so we don't have to
+    //change all the values below if we were the change the movement speed later on
+    var Movespeed : Real = 10.0;
+    
+    //Creating the boolean to check if the camera have reached the player
+    var CameraReach : Boolean = Boolean();
+    
+    
+    //The function that runs once at the start
+    function Initialize(init : CogInitializer)
+    {
+        //Initializing and telling zero that the OnLogicUpdate function will be running constantly
+        Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    }
+
+    
+    //The function that runs throughout, constantly
+    function OnLogicUpdate(event : UpdateEvent)
+    {
+        //Checking to see what is the game state
+        //If the game state is execute
+        if(this.Space.FindObjectByName("LevelSettings").GameStateController.GameState == 3)
+        {
+            //Change the camera size if it had not been changed to 20 yet
+            if(this.Owner.Camera.Size != 20)
+            {
+                //Reducing the size of the camera
+                --this.Owner.Camera.Size;
+            }
+            
+            //Updating the player position variable in here as the player moves
+            this.PlayerPos = this.Space.FindObjectByName("Player").Transform.Translation;
+            
+            //Setting the movement variable to become the vector for getting there
+            //Then the Z vector is added so that it stays far away from the actual playing field in Z
+            this.Movement = this.PlayerPos - this.Owner.Transform.Translation + Real3(0,0,40);
+            
+            //Setting the unnormalized variable to be that of the movement
+            this.UnNormX = this.Movement.X;
+            this.UnNormY = this.Movement.Y;
+            
+            //before normalizing the vector
+            this.Movement = Math.Normalize(this.Movement);
+            
+            //if the distance between the camera and the player is more than 0.5 units in either the
+            //x coordinate or y coordinate
+            if(this.UnNormX > 0.5 || this.UnNormX < -0.5 || this.UnNormY > 0.5 || this.UnNormY < -0.5)
+            {
+                //If the boolean to check for if the camera has originally reached the player is true
+                if(this.CameraReach)
+                {
+                    //Then the speed that the camera chases the player will be normal
+                    this.Owner.Transform.Translation += this.Movement * event.Dt * this.Movespeed;
+                }
+                else
+                {
+                    //Otherwise, the camera will move at a higher rate
+                    this.Owner.Transform.Translation += this.Movement * event.Dt * this.Movespeed * 4;
+                }
+            }
+            else
+            {
+                //If the camera position and the player position are within 0.5 units of both the x-coordinate and the y-coordinates
+                //Then the camera have reached the player, setting the cameraReach boolean to true
+                this.CameraReach = true;
+                
+                //Only move while the player is visible
+                if(this.Space.FindObjectByName("Player").Sprite.Visible)
+                {
+                    //Smoothening the camera
+                    this.Owner.Transform.Translation += this.Movement * event.Dt * this.Movespeed * 0.5;
+                }
+            }
+        }
+        else
+        {
+            //Otherwise, if the gamestate is not in execute, which will be in planning or recording
+            //Check to see if the camera size is the same as the one in the property variable
+            //If it isn't, enter the loop
+            if(this.Owner.Camera.Size != this.CameraSize)
+            {
+                //And increase the camera size until it becomes the same
+                ++this.Owner.Camera.Size;
+            }
+            
+            //Getting the vector for movement with the starting camera position and the current camera position
+            //Then the Z vector is added so that it stays far away from the actual playing field in Z
+            this.Movement = this.CameraPos - this.Owner.Transform.Translation + Real3(0,0,40);
+            
+            //Before grabbing the unnormalized X and Y from the movement vector
+            this.UnNormX = this.Movement.X;
+            this.UnNormY = this.Movement.Y;
+            
+            //Before normalizing it
+            this.Movement = Math.Normalize(this.Movement);
+            
+            //if the distance between the camera and the camera default position is off by at least 0.5 units
+            //in either the x-coordinate or y-coordinate
+            if(this.UnNormX > 0.5 || this.UnNormX < -0.5 || this.UnNormY > 0.5 || this.UnNormY < -0.5)
+            {
+                //then move the camera towards the camera default
+                this.Owner.Transform.Translation += this.Movement * event.Dt * this.Movespeed * 4;
+            }
+            
+            // before setting the boolean that checks if the camera have reached the player to false
+            this.CameraReach = false;
+        }
+    }
+}

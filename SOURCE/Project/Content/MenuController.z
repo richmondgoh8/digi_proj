@@ -1,0 +1,216 @@
+/*
+All content ContentCopyright 2016 DigiPen Institute of Technology Singapore. All Rights Reserved
+
+Primary Author: Shermann Sia
+
+Brief Description: Controls the menu for up down selection based on w and d keys including up and down.
+*/
+
+class MenuController : ZilchComponent
+{
+    
+    //Variable Length is used to determine size of TestArray
+    //Variable TestArray is used to create an array that stores Integer
+    //IsButtonSelected 1-4 is used to check when each button is selected
+    //StartButton Cog will be used to find StartGameButton
+    //HowToPlayButton Cog will be used to find HowToPlayButton
+    //CreditsButton Cog will be used to find CreditsButton
+    //QuitButton Cog will be used to find QuitButton
+    
+    /*
+        NextScreen is used to find LevelSelection
+        CreditsScreen is used to find Credits
+        HowToPlayScreen is to find HowToPlayScreen
+    */
+    
+    var Length : Integer = 4;
+    var TestArray : Array[Integer] = Array[Integer](); 
+    
+    var IsButton1Selected : Boolean = true;
+    var IsButton2Selected : Boolean = false;
+    var IsButton3Selected : Boolean = false;
+    var IsButton4Selected : Boolean = false;
+    
+    var StartButton:Cog;
+    var HowToPlayButton:Cog;
+    var CreditsButton:Cog;
+    var QuitButton:Cog;
+    
+    var DefaultColor:Real4 = Real4(19.0/255,83.0/255,98.0/255,0.3);
+    var SelectedColor:Real4 = Real4(22.0/255.0,255.0/255,255.0/255,1.0);
+    var DefaultTextColor:Real4 = Real4(147.0/255,168.0/255,172.0/255,1.0);
+    
+    var NextScreen: Level = Level.Find("LevelSelection");
+    var CreditsScreen: Level = Level.Find("Credits");
+    var HowToPlayScreen: Level = Level.Find("HowToPlayScreen");
+    
+    /*
+        during function initalize:
+        1. Mouse will be Hidden
+        2. Connect keyboard Events
+        3. Connect Moveup and MoveDown Events
+        4. temp variables created to provide inital same color scheme for all buttons
+        5. For Array used to initalize i and keep looping until <this.Length, this will be used to add array and assign them to the values to 1
+        6. When default button found, change the selectedbutton to selected color and the rest to default color.
+    */
+    
+    function Initialize(init : CogInitializer)
+    {
+        /*Disappearing of Mouse and Cursor*/
+        Zero.Mouse.Trapped = true;
+        Zero.Mouse.Cursor = Cursor.Invisible;
+        //Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+        Zero.Connect(this.Owner, Events.MoveUp, this.OnMoveUp);
+        Zero.Connect(this.Owner, Events.MoveDown, this.OnMoveDown);
+        Zero.Connect(Zero.Keyboard, Events.KeyDown, this.Checker);
+        
+        this.StartButton        = this.Space.FindObjectByName("StartGameButton");
+        this.HowToPlayButton    = this.Space.FindObjectByName("HowToPlayButton");
+        this.CreditsButton      = this.Space.FindObjectByName("CreditsButton");
+        this.QuitButton         = this.Space.FindObjectByName("QuitButton");
+        
+        var startButton = this.StartButton.Sprite;
+        var howToPlayButton = this.HowToPlayButton.Sprite;
+        var creditsButton = this.CreditsButton.Sprite;
+        var quitButton = this.QuitButton.Sprite;
+        
+        for (var i = 0;i < this.Length;++i)
+        {
+            this.TestArray.Add(0);
+            this.TestArray[0] = 1;
+        }
+        
+        if(this.IsButton1Selected == true)
+        {
+            startButton.Color = this.SelectedColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.DefaultColor;
+        }
+        
+    }
+
+    /*
+    This Functions checks array when assigned key is pressed and loads accordingly
+    Base on array result, the space will load the level accordingly
+    */
+    function Checker(event:KeyboardEvent)
+    {
+        if(event.Key == Keys.Enter)
+        {
+            if(this.TestArray[0] == 1)
+            {
+                this.Space.LoadLevel(this.NextScreen);
+            }
+            
+            else if(this.TestArray[0] == 2)
+            {
+                this.Space.LoadLevel(this.HowToPlayScreen);
+            }
+            
+            else if(this.TestArray[0] == 3)
+            {
+                this.Space.LoadLevel(this.CreditsScreen);
+                
+            }
+            
+            else if(this.TestArray[0] == 4)
+            {
+                this.GameSession.Quit();
+            }
+        }
+    }
+    
+    /*
+    Function of OnMoveUp assigns the colors to the select button base on up buttons from 1 to 4
+    */
+    function OnMoveUp(event:Event)
+    {
+        var startButton = this.StartButton.Sprite;
+        var howToPlayButton = this.HowToPlayButton.Sprite;
+        var creditsButton = this.CreditsButton.Sprite;
+        var quitButton = this.QuitButton.Sprite;
+        
+        if (this.TestArray[0]==1)
+        {
+            this.TestArray[0] = 4;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.SelectedColor;
+        }
+        
+        else if (this.TestArray[0]==2)
+        {
+            this.TestArray[0] -= 1;
+            startButton.Color = this.SelectedColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.DefaultColor;
+        }
+        
+        else if (this.TestArray[0]==3)
+        {
+            this.TestArray[0] -= 1;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.SelectedColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.DefaultColor;
+        }
+        
+        else if (this.TestArray[0]==4)
+        {
+            this.TestArray[0] -= 1;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.SelectedColor;
+            quitButton.Color = this.DefaultColor;
+        }
+    }
+    
+    /*
+    Function of OnMoveDown assigns the colors to the select button base on down buttons from 4 to 1
+    */
+    function OnMoveDown(event:Event)
+    {
+        var startButton = this.StartButton.Sprite;
+        var howToPlayButton = this.HowToPlayButton.Sprite;
+        var creditsButton = this.CreditsButton.Sprite;
+        var quitButton = this.QuitButton.Sprite;
+        if (this.TestArray[0]==1)
+        {
+            this.TestArray[0] += 1;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.SelectedColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.DefaultColor;
+        }
+        
+        else if (this.TestArray[0]==2)
+        {
+            this.TestArray[0] += 1;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.SelectedColor;
+            quitButton.Color = this.DefaultColor;
+        }
+        
+        else if (this.TestArray[0]==3)
+        {
+            this.TestArray[0] += 1;
+            startButton.Color = this.DefaultColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.SelectedColor;
+        }
+        
+        else if (this.TestArray[0]==4)
+        {
+            this.TestArray[0] = 1;
+            startButton.Color = this.SelectedColor;
+            howToPlayButton.Color = this.DefaultColor;
+            creditsButton.Color = this.DefaultColor;
+            quitButton.Color = this.DefaultColor;
+        }
+    }
+}

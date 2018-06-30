@@ -1,0 +1,43 @@
+Cog = 
+{
+	LinkId = 
+	{
+		uint Id = 1,
+	},
+	Named = 
+	{
+		string Name = "SpriteTextArch",
+	},
+	Archetyped = 
+	{
+		string Name = "5857f58326358937:SpriteTextArch",
+	},
+	Transform = 
+	{
+		Vec3 Translation = [0, 0, 0],
+		Vec3 Scale = [1, 1, 1],
+		Quat Rotation = [0, 0, 0, 1],
+	},
+	SpriteText = 
+	{
+		bool Visible = true,
+		bool VisibilityCulling = true,
+		bool VisibilityEvents = true,
+		bool CastShadows = false,
+		Vec4 Color = [1, 1, 1, 1],
+		BlendMode BlendMode = Alpha,
+		SpriteGeometryMode GeometryMode = ZPlane,
+		string SpriteLayer = "5855248253107ab6:MenuButtonText",
+		string FontName = "588ff0547c142939:TheSheeeManFonta",
+		uint FontSize = 60,
+		string Text = "Sprite Text...",
+		TextAlign Align = Center,
+		float PixelsPerUnit = 64,
+		bool Smoothing = true,
+	},
+	Area = 
+	{
+		Vec2 Size = [5, 5],
+		Location Origin = Center,
+	},
+},

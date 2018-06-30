@@ -1,0 +1,12 @@
+BinaryContent = 
+{
+	BinaryBuilder = 
+	{
+		string Name = "HowToPlayScreen_TileMap00",
+		uint64 ResourceId = 583287c5042ac1ce,
+		string LoaderType = "TileMapSource",
+		uint Version = 0,
+		string FilterTag = "",
+		string ResourceOwner = "5828838eacc165f7:HowToPlayScreen",
+	},
+},

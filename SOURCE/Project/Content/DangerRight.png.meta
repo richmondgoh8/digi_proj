@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "DangerRight",
+		uint64 ResourceId = 58834bd1eb98f111,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 200,
+		uint FrameSizeY = 200,
+		uint FrameCount = 3,
+		float FrameDelay = 0.0833333358,
+		float OriginX = 100,
+		float OriginY = 100,
+		float PixelsPerUnit = 25,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},

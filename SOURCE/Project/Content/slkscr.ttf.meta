@@ -1,0 +1,8 @@
+FontContent = 
+{
+	FontBuilder = 
+	{
+		string Name = "slkscr",
+		uint64 ResourceId = 5831e0c638ea6ac6,
+	},
+},

@@ -1,0 +1,15 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "MenuController",
+		uint64 ResourceId = 58553e451cdefe12,
+	},
+	ContentTags = 
+	{
+		Array Tags = 
+		[
+			"FirstScreenTag",
+		],
+	},
+},

@@ -1,0 +1,15 @@
+TextContent = 
+{
+	ZilchScriptBuilder = 
+	{
+		string Name = "InputEvents",
+		uint64 ResourceId = 58552a5c58e02b6c,
+	},
+	ContentTags = 
+	{
+		Array Tags = 
+		[
+			"FirstScreenTag",
+		],
+	},
+},

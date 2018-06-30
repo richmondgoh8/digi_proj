@@ -1,0 +1,20 @@
+ImageContent = 
+{
+	SpriteSourceBuilder = 
+	{
+		string Name = "Reset1",
+		uint64 ResourceId = 5881cb5cd7bff0ad,
+		uint64 AtlasId = 5274cf95e4a661fd,
+		uint FrameSizeX = 48,
+		uint FrameSizeY = 7,
+		uint FrameCount = 6,
+		float FrameDelay = 0.333333343,
+		float OriginX = 24,
+		float OriginY = 3.5,
+		float PixelsPerUnit = 25,
+		bool Smoothing = false,
+		bool Looping = true,
+		Vec4 Slices = [0, 0, 0, 0],
+		SpriteFill Fill = Stretch,
+	},
+},
